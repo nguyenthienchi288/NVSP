@@ -3,545 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bài thực hành: Chia sẻ Tệp & Thư mục (Windows 10)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
+    <title>Mô Phỏng: Chia Sẻ Tệp và Thư Mục</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- PHẦN CSS - GIAO DIỆN WINDOWS 10 --- */
-        :root {
-            --win-blue: #0078D4;
-            --win-dark-gray: #333;
-            --win-gray: #555;
-            --win-light-gray: #f0f0f0;
-            --win-border-color: #ccc;
-            --win-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
+        /* Sử dụng font hệ thống cho giao diện giống Windows */
         body {
-            font-family: var(--win-font-family);
-            background-color: #0078D4;
-            background-image: url('https://getwallpapers.com/wallpaper/full/9/f/a/321520.jpg');
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             user-select: none;
-            -webkit-user-select: none;
         }
 
-        .main-container {
-            backdrop-filter: blur(10px) brightness(0.9);
-            -webkit-backdrop-filter: blur(10px) brightness(0.9);
-            padding: 1rem !important;
+        /* Tùy chỉnh thanh cuộn */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        
+        /* Hiệu ứng active cho nút bấm giống Windows */
+        .win-button:active {
+            border-color: #005a9e;
+            background-color: #cce8ff;
         }
 
-        .text-shadow {
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-            color: white;
-        }
-
-        /* Bảng hướng dẫn */
-        .task-panel {
-            background-color: rgba(240, 240, 240, 0.95);
-            border: 1px solid var(--win-border-color);
-            border-radius: 0;
-            backdrop-filter: blur(15px);
-        }
-
-        .task-panel .card-header {
-            background-color: var(--win-light-gray);
-            color: var(--win-dark-gray);
-            font-size: 1.1rem;
-            border-bottom: 1px solid var(--win-border-color);
-        }
-        .task-panel .card-body {
-            font-size: 0.95rem;
-        }
-
-        /* Khu vực mô phỏng */
-        .simulation-area {
-            background-color: transparent;
-            border: none;
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
-            padding-top: 2rem !important;
-            padding-left: 2rem !important;
-        }
-
-        .folder-icon {
-            display: inline-block;
-            text-align: center;
-            padding: 10px;
-            cursor: pointer;
-            position: relative;
-            width: 100px; /* Kích thước cố định */
-            border: 2px solid transparent;
-        }
-
-        .folder-icon:hover, .folder-icon:focus {
-            background-color: rgba(0, 120, 212, 0.2);
-            border: 2px solid rgba(0, 120, 212, 0.4);
-            outline: none;
-        }
-
-        .folder-icon.highlight {
-             background-color: rgba(0, 120, 212, 0.3);
-             border: 2px solid var(--win-blue);
-        }
-
-        .folder-icon .fa-folder {
-            color: #FFCA28; /* Màu vàng thư mục Win10 */
-            -webkit-text-stroke: 1px #b98d0c;
-        }
-
-        .icon-label {
-            display: block;
-            margin-top: 5px;
-            font-weight: 400;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
-            font-size: 0.9rem;
-        }
-
-        /* Lớp phủ khi chia sẻ */
-        .share-overlay, .share-overlay-network {
+        /* Lớp phủ cho thư mục đã được chia sẻ */
+        .shared-overlay {
             position: absolute;
-            bottom: 30px;
-            left: 20px;
-            font-size: 1.2rem;
-            color: #4CAF50;
-            background-color: white;
-            border-radius: 50%;
-            padding: 2px;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 16px;
+            background-color: #2578d9;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-         .share-overlay-network { color: var(--win-blue); }
 
-        /* Menu chuột phải (Context Menu) */
-        .context-menu {
+        .shared-overlay::before {
+            content: '';
             position: absolute;
-            z-index: 1060;
-            background: #f2f2f2;
-            border: 1px solid #999;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-            padding: 4px 0;
-            display: none;
-            border-radius: 0;
-            width: 200px;
+            width: 24px;
+            height: 2px;
+            background-color: #fff;
         }
-
-        .context-menu ul { list-style: none; padding: 0; margin: 0; }
-        .context-menu li { padding: 6px 15px; cursor: default; font-size: 0.9rem; }
-        .context-menu li:hover { background-color: var(--win-blue); color: white; }
-        .context-menu i { margin-right: 10px; width: 16px; text-align: center; }
-
-        /* Tùy chỉnh Modal */
-        .modal-content { border-radius: 0; border: 1px solid var(--win-border-color); }
-        .modal-header {
-            background-color: var(--win-light-gray);
-            color: var(--win-dark-gray);
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--win-border-color);
-        }
-        .modal-title { font-size: 1rem; }
-        .btn, .form-select, .form-check-input { border-radius: 0; }
-        .btn-primary { background-color: var(--win-blue); border-color: var(--win-blue); }
-        .btn-primary:hover { background-color: #005a9e; border-color: #005a9e; }
-        .btn-secondary { background-color: #e1e1e1; color: black; border-color: #adadad; }
-        .btn-secondary:hover { background-color: #cacaca; border-color: #adadad; }
-        .nav-tabs .nav-link { color: var(--win-gray); border-radius: 0; }
-        .nav-tabs .nav-link.active { font-weight: bold; color: var(--win-blue); }
-
-        .success-modal-content { background-color: #f0fff4; }
     </style>
 </head>
-<body>
-    <div class="container-fluid vh-100 d-flex flex-column main-container">
-        <header class="text-center mb-3">
-            <h1 class="display-6 fw-bold text-shadow">Bài thực hành: Chia sẻ Thư mục</h1>
-        </header>
+<body class="bg-[#f0f0f0] flex flex-col lg:flex-row p-2 sm:p-4 gap-4 h-screen overflow-hidden">
 
-        <div class="row flex-grow-1 gx-3">
-            <div class="col-lg-4 col-md-5">
-                <div class="card h-100 shadow-sm task-panel">
-                    <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                        <span id="task-title">Nhiệm vụ 2: Chia sẻ thư mục</span>
-                        <i class="fa-solid fa-list-check text-muted"></i>
-                    </div>
-                    <div class="card-body">
-                        <p id="task-instruction">
-                            <strong>Bước 1:</strong> Nhấp <strong>chuột phải</strong> (hoặc <strong>nhấn giữ</strong> trên di động) vào thư mục 📂 <strong>SÁCH LỚP 12</strong> và chọn <strong>Properties</strong>.
-                        </p>
-                        <div id="feedback" class="alert alert-info mt-3 d-none"></div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0 text-center">
-                        <button id="next-task-btn" class="btn btn-primary w-100 fw-bold d-none">
-                            Tiếp tục Nhiệm vụ 3 <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                         <button id="reset-btn" class="btn btn-secondary w-100 fw-bold mt-2">
-                            <i class="fa-solid fa-rotate-right"></i> Làm lại từ đầu
-                        </button>
-                    </div>
+    <!-- Cột Hướng Dẫn -->
+    <div class="lg:w-1/3 bg-white rounded-lg shadow-md p-4 flex flex-col h-1/2 lg:h-full overflow-y-auto">
+        <h1 class="text-xl font-bold text-[#003366] mb-4">Hướng Dẫn Thực Hành</h1>
+        <div id="task-list" class="space-y-3 text-sm">
+            <div id="task-2" class="p-3 bg-gray-50 rounded-md border border-gray-200">
+                <h2 class="font-semibold text-lg mb-2">Nhiệm vụ 2: Chia sẻ thư mục</h2>
+                <div id="t2s1" class="task-step" data-task="t2s1">1. Mở thuộc tính của thư mục <strong>SÁCH LỚP 12</strong> trên <strong>MAY_1</strong>.</div>
+                <div id="t2s2" class="task-step" data-task="t2s2">2. Trong thẻ <strong>Sharing</strong>, nhấp vào nút <strong>Share...</strong></div>
+                <div id="t2s3" class="task-step" data-task="t2s3">3. Chọn <strong>Everyone</strong>, thêm vào danh sách và nhấn <strong>Share</strong>.</div>
+                <div id="t2s4" class="task-step" data-task="t2s4">4. Từ <strong>MAY_2</strong>, truy cập vào <strong>MAY_1</strong> qua <strong>Network</strong> để xem thư mục đã chia sẻ.</div>
+            </div>
+            <div id="task-3" class="p-3 bg-gray-50 rounded-md border border-gray-200">
+                <h2 class="font-semibold text-lg mb-2">Nhiệm vụ 3: Hủy bỏ chia sẻ</h2>
+                <div id="t3s1" class="task-step" data-task="t3s1">1. Mở thuộc tính thư mục <strong>SÁCH LỚP 12</strong>, vào thẻ <strong>Sharing</strong> và chọn <strong>Advanced Sharing...</strong></div>
+                <div id="t3s2" class="task-step" data-task="t3s2">2. Bỏ chọn "Share this folder" và nhấn <strong>OK</strong>.</div>
+            </div>
+        </div>
+        <button id="reset-button" class="mt-auto w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 win-button transition-colors">Làm lại từ đầu</button>
+    </div>
+
+    <!-- Cửa Sổ File Explorer Giả Lập -->
+    <div class="lg:w-2/3 bg-[#eff6fc] rounded-lg shadow-lg flex flex-col h-1/2 lg:h-full border border-gray-300">
+        <!-- Thanh tiêu đề -->
+        <div class="bg-gray-100 border-b border-gray-300 p-1 flex items-center gap-2 rounded-t-lg">
+            <div class="flex gap-1">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+            <p class="text-sm font-semibold ml-2">File Explorer</p>
+        </div>
+
+        <!-- Thanh địa chỉ -->
+        <div class="bg-white p-1 border-b border-gray-300 flex items-center">
+            <i class="fas fa-arrow-left text-gray-400 p-1"></i>
+            <i class="fas fa-arrow-right text-gray-600 p-1 mx-1"></i>
+            <div class="flex-grow bg-gray-100 border border-gray-300 rounded p-1 text-sm flex items-center">
+                <i class="fa-solid fa-network-wired text-blue-700 mr-2"></i>
+                <span id="address-bar">Network</span>
+            </div>
+        </div>
+
+        <!-- Nội dung chính -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Khung điều hướng bên trái -->
+            <div class="w-1/4 bg-gray-50 p-2 border-r border-gray-200 overflow-y-auto">
+                <div id="nav-network" class="nav-item p-2 rounded cursor-pointer bg-blue-100 border border-blue-300">
+                    <i class="fa-solid fa-network-wired fa-fw mr-2 text-blue-700"></i><span class="text-sm font-medium">Network</span>
                 </div>
             </div>
 
-            <div class="col-lg-8 col-md-7">
-                <div class="simulation-area h-100">
-                    <div id="desktop-may1" class="computer-desktop active">
-                        <div id="folder-to-share" class="folder-icon" tabindex="0">
-                            <i class="fa-solid fa-folder fa-5x"></i>
-                            <span class="icon-label">SÁCH LỚP 12</span>
-                            <div class="share-overlay d-none"><i class="fa-solid fa-user-group"></i></div>
-                        </div>
-                    </div>
-                    <div id="desktop-may2" class="computer-desktop d-none">
-                         <div id="shared-folder-view" class="folder-icon d-none" tabindex="0">
-                            <i class="fa-solid fa-folder fa-5x"></i>
-                            <span class="icon-label">SÁCH LỚP 12 on MAY_1</span>
-                             <div class="share-overlay-network"><i class="fa-solid fa-network-wired"></i></div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Khung hiển thị tệp/thư mục -->
+            <div id="main-content" class="w-3/4 p-4 flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                <!-- Nội dung sẽ được tạo bởi JavaScript -->
             </div>
         </div>
     </div>
 
-    <div id="context-menu" class="context-menu shadow-lg">
-        <ul>
-            <li id="context-open"><i class="fa-regular fa-folder-open"></i> Open</li>
-            <li class="separator"><hr class="my-1"></li>
-            <li id="context-properties"><i class="fa-solid fa-gear"></i> <strong>Properties</strong></li>
-        </ul>
+    <!-- Menu chuột phải (Context Menu) -->
+    <div id="context-menu" class="hidden absolute bg-white border border-gray-300 rounded shadow-lg p-1 text-sm z-50">
+        <div id="context-properties" class="px-3 py-1 hover:bg-blue-500 hover:text-white rounded cursor-pointer">Properties</div>
+    </div>
+
+    <!-- Cửa sổ Properties -->
+    <div id="properties-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-96 bg-gray-100 border border-gray-400 shadow-2xl rounded-lg z-40 flex flex-col">
+        <div class="bg-white px-3 py-1 font-bold text-sm border-b border-gray-300 flex justify-between items-center">
+            <span id="properties-title">Properties</span>
+            <button id="close-properties" class="font-bold text-gray-600 hover:text-red-500">&times;</button>
+        </div>
+        <div class="flex border-b border-gray-300 text-sm">
+            <button class="tab-button px-3 py-1 border-b-2 border-blue-500 bg-white" data-tab="general">General</button>
+            <button class="tab-button px-3 py-1" data-tab="sharing">Sharing</button>
+            <button class="tab-button px-3 py-1" data-tab="security">Security</button>
+        </div>
+        <div class="p-4 flex-grow text-sm space-y-4">
+            <!-- Tab General -->
+            <div class="tab-content" id="tab-general">
+                <p><strong>Size:</strong> 1.25 MB</p>
+                <p><strong>Contains:</strong> 15 Files, 2 Folders</p>
+            </div>
+            <!-- Tab Sharing -->
+            <div class="tab-content hidden" id="tab-sharing">
+                <h3 class="font-semibold">Network File and Folder Sharing</h3>
+                <p class="text-xs text-gray-600 mb-2">Share folders with other people on the network.</p>
+                <button id="share-button" class="bg-gray-200 border border-gray-400 px-8 py-1 rounded text-sm hover:bg-gray-300 win-button">Share...</button>
+                <hr class="my-3">
+                <h3 class="font-semibold">Advanced Sharing</h3>
+                <p class="text-xs text-gray-600 mb-2">Set custom permissions, create multiple shares.</p>
+                <button id="advanced-sharing-button" class="bg-gray-200 border border-gray-400 px-8 py-1 rounded text-sm hover:bg-gray-300 win-button">Advanced Sharing...</button>
+            </div>
+             <!-- Tab Security -->
+            <div class="tab-content hidden" id="tab-security">
+                <p>Object name: SÁCH LỚP 12</p>
+                <p>To change permissions, click Edit.</p>
+            </div>
+        </div>
+        <div class="bg-gray-200 p-2 border-t border-gray-300 flex justify-end gap-2">
+            <button id="ok-properties" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">OK</button>
+            <button id="cancel-properties" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
+        </div>
     </div>
     
-    <div class="modal fade" id="properties-modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">SÁCH LỚP 12 Properties</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs">
-                        <li class="nav-item"><a class="nav-link" href="#">General</a></li>
-                        <li class="nav-item"><a class="nav-link active" id="sharing-tab" href="#"><strong>Sharing</strong></a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Security</a></li>
-                    </ul>
-                    <div class="tab-content p-3 border border-top-0">
-                        <p class="mb-2"><strong>Network File and Folder Sharing</strong></p>
-                        <button id="share-btn" class="btn btn-secondary">Share...</button>
-                        <hr>
-                        <p class="mb-2"><strong>Advanced Sharing</strong></p>
-                        <button id="advanced-share-btn" class="btn btn-secondary">Advanced Sharing...</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">OK</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
+    <!-- Cửa sổ Share -->
+    <div id="share-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-[450px] bg-white border border-gray-400 shadow-2xl rounded-lg z-50 flex flex-col">
+        <div class="px-4 py-2 font-bold text-sm border-b border-gray-300">
+            <span>Network access</span>
+        </div>
+        <div class="p-4 flex-grow text-sm space-y-2">
+            <h2 class="text-lg">Choose people to share with</h2>
+            <p class="text-xs">Type a name and click Add, or choose from the list.</p>
+            <div class="flex">
+                <select id="user-select" class="flex-grow border border-gray-400 p-1 rounded-l">
+                    <option>Everyone</option>
+                    <option>user11</option>
+                    <option>user12</option>
+                </select>
+                <button id="add-user-button" class="bg-gray-200 border border-gray-400 px-4 rounded-r text-sm win-button">Add</button>
+            </div>
+            <div id="shared-users-list" class="border border-gray-300 h-24 p-1 overflow-y-auto">
+                <!-- User list appears here -->
             </div>
         </div>
-    </div>
-
-    <div class="modal fade" id="share-modal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Network Access</h5>
-                </div>
-                <div class="modal-body">
-                    <p>Choose people to share with.</p>
-                    <div class="input-group mb-3">
-                        <select id="user-select" class="form-select">
-                            <option>Choose...</option>
-                            <option value="Everyone">Everyone</option>
-                        </select>
-                        <button id="add-user-btn" class="btn btn-secondary">Add</button>
-                    </div>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr><th>Name</th><th>Permission Level</th></tr>
-                        </thead>
-                        <tbody id="share-list"></tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button id="confirm-share-btn" type="button" class="btn btn-primary disabled">Share</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
+        <div class="bg-gray-100 p-2 border-t border-gray-300 flex justify-end gap-2">
+            <button id="confirm-share-button" class="bg-blue-600 text-white px-6 py-1 rounded text-sm win-button">Share</button>
+            <button id="cancel-share-button" class="bg-gray-200 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
         </div>
     </div>
-
-    <div class="modal fade" id="advanced-share-modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Advanced Sharing</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="share-this-folder-checkbox">
-                        <label class="form-check-label" for="share-this-folder-checkbox">
-                           <strong>Share this folder</strong>
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="apply-advanced-share-btn" type="button" class="btn btn-primary">Apply</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="success-modal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center border-0 shadow-lg success-modal-content">
-                <div class="modal-body p-4">
-                    <i class="fa-solid fa-circle-check fa-4x text-success mb-3"></i>
-                    <h4 id="success-message" class="fw-bold">Thao tác thành công!</h4>
-                    <p id="success-details"></p>
-                    <button type="button" class="btn btn-success mt-2" data-bs-dismiss="modal">Tuyệt vời!</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script>
-        // --- PHẦN JAVASCRIPT ---
-        document.addEventListener('DOMContentLoaded', function () {
-            let currentStep = 1;
-            let folderIsShared = false;
-            let pressTimer;
+    <!-- Cửa sổ Advanced Sharing -->
+    <div id="advanced-sharing-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-96 bg-gray-100 border border-gray-400 shadow-2xl rounded-lg z-50 flex flex-col">
+         <div class="bg-white px-3 py-1 font-bold text-sm border-b border-gray-300 flex justify-between items-center">
+            <span>Advanced Sharing</span>
+            <button id="close-advanced" class="font-bold text-gray-600 hover:text-red-500">&times;</button>
+        </div>
+        <div class="p-4 flex-grow text-sm space-y-4">
+             <label class="flex items-center">
+                <input type="checkbox" id="share-folder-checkbox" class="mr-2">
+                Share this folder
+            </label>
+        </div>
+        <div class="bg-gray-200 p-2 border-t border-gray-300 flex justify-end gap-2">
+            <button id="ok-advanced" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">OK</button>
+            <button id="cancel-advanced" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
+        </div>
+    </div>
 
-            const folder = document.getElementById('folder-to-share');
-            const contextMenu = document.getElementById('context-menu');
-            const propertiesMenuItem = document.getElementById('context-properties');
-            
-            const propertiesModal = new bootstrap.Modal(document.getElementById('properties-modal'));
-            const shareModal = new bootstrap.Modal(document.getElementById('share-modal'));
-            const advancedShareModal = new bootstrap.Modal(document.getElementById('advanced-share-modal'));
-            const successModal = new bootstrap.Modal(document.getElementById('success-modal'));
+    <!-- Thông báo nhỏ -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300">
+        Hoàn thành!
+    </div>
 
-            const taskTitle = document.getElementById('task-title');
-            const instructionText = document.getElementById('task-instruction');
-            const feedbackBox = document.getElementById('feedback');
-            const nextTaskBtn = document.getElementById('next-task-btn');
-            const resetBtn = document.getElementById('reset-btn');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const mainContent = document.getElementById('main-content');
+    const addressBar = document.getElementById('address-bar');
+    const navNetwork = document.getElementById('nav-network');
+    const contextMenu = document.getElementById('context-menu');
+    const contextProperties = document.getElementById('context-properties');
+    const propertiesWindow = document.getElementById('properties-window');
+    const shareWindow = document.getElementById('share-window');
+    const advancedSharingWindow = document.getElementById('advanced-sharing-window');
+    const toast = document.getElementById('toast');
+    const resetButton = document.getElementById('reset-button');
+    
+    // State
+    let state = {};
 
-            const shareBtn = document.getElementById('share-btn');
-            const advancedShareBtn = document.getElementById('advanced-share-btn');
-            const addUserBtn = document.getElementById('add-user-btn');
-            const userSelect = document.getElementById('user-select');
-            const shareList = document.getElementById('share-list');
-            const confirmShareBtn = document.getElementById('confirm-share-btn');
-            const shareThisFolderCheckbox = document.getElementById('share-this-folder-checkbox');
-            const applyAdvancedShareBtn = document.getElementById('apply-advanced-share-btn');
-
-            const shareOverlay = folder.querySelector('.share-overlay');
-            const desktopMay1 = document.getElementById('desktop-may1');
-            const desktopMay2 = document.getElementById('desktop-may2');
-            const sharedFolderView = document.getElementById('shared-folder-view');
-
-            function updateUI() {
-                folder.classList.remove('highlight');
-
-                switch (currentStep) {
-                    case 1:
-                        taskTitle.textContent = "Nhiệm vụ 2: Chia sẻ thư mục";
-                        instructionText.innerHTML = "<strong>Bước 1:</strong> Nhấp <strong>chuột phải</strong> (hoặc <strong>nhấn giữ</strong> trên di động) vào thư mục 📂 <strong>SÁCH LỚP 12</strong> và chọn <strong>Properties</strong>.";
-                        folder.classList.add('highlight');
-                        break;
-                    case 2:
-                        instructionText.innerHTML = "<strong>Bước 2:</strong> Trong thẻ <strong>Sharing</strong>, nhấp vào nút <strong>Share...</strong> để mở cửa sổ chọn người dùng.";
-                        break;
-                    case 3:
-                        instructionText.innerHTML = "<strong>Bước 3:</strong> Chọn <strong>Everyone</strong> từ danh sách và nhấp <strong>Add</strong>.";
-                        break;
-                    case 4:
-                        instructionText.innerHTML = "<strong>Bước 4:</strong> Người dùng 'Everyone' đã được thêm với quyền 'Read'. Nhấp vào nút <strong>Share</strong> để xác nhận.";
-                        break;
-                    case 5:
-                        instructionText.innerHTML = "<strong>Bước 5:</strong> Giờ hãy kiểm tra từ máy khác. Thư mục chia sẻ đã xuất hiện. Hãy thử nhấp vào nó.";
-                        sharedFolderView.classList.add('highlight');
-                        break;
-                    case 6:
-                         taskTitle.textContent = "Nhiệm vụ 3: Hủy bỏ chia sẻ";
-                         instructionText.innerHTML = "<strong>Bước 1:</strong> Quay lại <strong>MAY_1</strong>. Mở lại <strong>Properties</strong> (chuột phải/nhấn giữ) -> <strong>Sharing</strong> và nhấp vào <strong>Advanced Sharing...</strong>";
-                         desktopMay1.classList.remove('d-none');
-                         desktopMay2.classList.add('d-none');
-                         folder.classList.add('highlight');
-                        break;
-                    case 7:
-                        instructionText.innerHTML = "<strong>Bước 2:</strong> Bỏ dấu ✓ ở ô <strong>Share this folder</strong> và nhấp <strong>Apply</strong> để hủy chia sẻ.";
-                        break;
-                     case 8:
-                        taskTitle.textContent = "🎉 Chúc mừng bạn đã hoàn thành!";
-                        instructionText.innerHTML = "Bạn đã thực hành thành công việc chia sẻ và hủy chia sẻ thư mục. Hãy nhấp 'Làm lại từ đầu' để thực hành lại.";
-                        break;
+    function initializeState() {
+        state = {
+            currentLocation: 'Network',
+            longPressTimer: null,
+            contextTarget: null,
+            computers: {
+                'MAY_1': {
+                    folders: { 'SÁCH LỚP 12': { isShared: false } }
+                },
+                'MAY_2': {
+                    folders: {}
                 }
-            }
+            },
+            tasks: { t2s1: false, t2s2: false, t2s3: false, t2s4: false, t3s1: false, t3s2: false }
+        };
+        render();
+        updateTaskListUI();
+    }
 
-            function showFeedback(message, type = 'info') {
-                feedbackBox.textContent = message;
-                feedbackBox.className = `alert alert-${type} mt-3`;
-                feedbackBox.classList.remove('d-none');
-                setTimeout(() => feedbackBox.classList.add('d-none'), 4000);
-            }
-            
-            function resetSimulation() {
-                currentStep = 1;
-                folderIsShared = false;
-                shareOverlay.classList.add('d-none');
-                shareList.innerHTML = '';
-                confirmShareBtn.classList.add('disabled');
-                userSelect.value = "Choose...";
-                nextTaskBtn.classList.add('d-none');
-                desktopMay1.classList.remove('d-none');
-                desktopMay2.classList.add('d-none');
-                sharedFolderView.classList.add('d-none');
-                updateUI();
-            }
-            
-            function showContextMenu(x, y) {
-                if (currentStep === 1 || currentStep === 6) {
-                    contextMenu.style.top = `${y}px`;
-                    contextMenu.style.left = `${x}px`;
-                    contextMenu.style.display = 'block';
-                } else {
-                    showFeedback('Hãy hoàn thành bước hiện tại trước nhé!', 'warning');
-                }
-            }
+    // --- RENDER LOGIC ---
+    function render() {
+        mainContent.innerHTML = '';
+        addressBar.textContent = state.currentLocation;
 
-            // --- XỬ LÝ TƯƠNG TÁC CHUỘT VÀ CẢM ỨNG ---
-            
-            // 1a. Chuột phải (Desktop)
-            folder.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                showContextMenu(e.clientX, e.clientY);
-            });
+        if (state.currentLocation === 'Network') {
+            renderComputers();
+        } else if (state.currentLocation.startsWith('MAY_')) {
+            renderFolders(state.currentLocation);
+        }
+    }
 
-            // 1b. Nhấn giữ (Mobile)
-            folder.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                pressTimer = window.setTimeout(() => {
-                    showContextMenu(e.touches[0].clientX, e.touches[0].clientY);
-                }, 500);
-            });
-
-            folder.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            folder.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
-
-
-            // --- CÁC SỰ KIỆN KHÁC ---
-
-            document.addEventListener('click', () => {
-                contextMenu.style.display = 'none';
-            });
-            
-            propertiesMenuItem.addEventListener('click', () => {
-                if (currentStep === 1 || currentStep === 6) {
-                     propertiesModal.show();
-                     if(currentStep === 1) currentStep = 2;
-                     updateUI();
-                }
-            });
-
-            shareBtn.addEventListener('click', () => {
-                if (currentStep === 2) {
-                    propertiesModal.hide();
-                    shareModal.show();
-                    currentStep = 3;
-                    updateUI();
-                } else if (folderIsShared) {
-                     showFeedback('Thư mục này đã được chia sẻ. Để thay đổi, hãy dùng Advanced Sharing.', 'info');
-                }
-                else { showFeedback('Bạn đang ở sai bước rồi!', 'warning'); }
-            });
-
-            addUserBtn.addEventListener('click', () => {
-                if (currentStep === 3 && userSelect.value === 'Everyone') {
-                    shareList.innerHTML = `<tr><td>Everyone</td><td>Read</td></tr>`;
-                    confirmShareBtn.classList.remove('disabled');
-                    currentStep = 4;
-                    updateUI();
-                } else { showFeedback("Hãy chọn 'Everyone' để thêm vào danh sách.", 'warning'); }
-            });
-
-            confirmShareBtn.addEventListener('click', () => {
-                if (currentStep === 4) {
-                    folderIsShared = true;
-                    shareModal.hide();
-                    shareOverlay.classList.remove('d-none');
-                    
-                    setTimeout(() => {
-                        desktopMay1.classList.add('d-none');
-                        desktopMay2.classList.remove('d-none');
-                        sharedFolderView.classList.remove('d-none');
-                        currentStep = 5;
-                        updateUI();
-                        successModal.show();
-                        document.getElementById('success-message').textContent = 'Chia sẻ thành công!';
-                        document.getElementById('success-details').textContent = 'Thư mục SÁCH LỚP 12 giờ đã xuất hiện trên máy tính mạng.';
-                    }, 500);
-                }
-            });
-            
-            sharedFolderView.addEventListener('click', () => {
-                if(currentStep === 5) {
-                    successModal.show();
-                    document.getElementById('success-message').textContent = 'Truy cập thành công!';
-                    document.getElementById('success-details').textContent = 'Bạn đã thấy được thư mục được chia sẻ. Nhiệm vụ 2 hoàn thành!';
-                    nextTaskBtn.classList.remove('d-none');
-                }
-            });
-            
-            nextTaskBtn.addEventListener('click', () => {
-                currentStep = 6;
-                nextTaskBtn.classList.add('d-none');
-                updateUI();
-            });
-            
-            advancedShareBtn.addEventListener('click', () => {
-                if(currentStep === 6) {
-                    propertiesModal.hide();
-                    advancedShareModal.show();
-                    shareThisFolderCheckbox.checked = folderIsShared;
-                    currentStep = 7;
-                    updateUI();
-                } else { showFeedback('Hãy hoàn thành các bước trước đó.', 'warning'); }
-            });
-            
-            applyAdvancedShareBtn.addEventListener('click', () => {
-                if(currentStep === 7 && !shareThisFolderCheckbox.checked) {
-                    folderIsShared = false;
-                    advancedShareModal.hide();
-                    shareOverlay.classList.add('d-none');
-                    
-                    successModal.show();
-                    document.getElementById('success-message').textContent = 'Hủy chia sẻ thành công!';
-                    document.getElementById('success-details').textContent = 'Thư mục không còn được chia sẻ trên mạng nữa.';
-
-                    currentStep = 8;
-                    updateUI();
-                } else if (currentStep === 7 && shareThisFolderCheckbox.checked) {
-                     showFeedback('Bạn cần bỏ dấu tick để hủy chia sẻ.', 'warning');
-                }
-            });
-            
-            resetBtn.addEventListener('click', resetSimulation);
-
-            // --- KHỞI TẠO ---
-            updateUI();
+    function renderComputers() {
+        Object.keys(state.computers).forEach(name => {
+            const computerDiv = createIcon(name, 'fa-desktop', 'computer');
+            computerDiv.addEventListener('dblclick', () => navigateTo(name));
+            computerDiv.addEventListener('click', () => navigateTo(name)); // For mobile
+            mainContent.appendChild(computerDiv);
         });
-    </script>
+    }
+
+    function renderFolders(computerName) {
+        if(computerName === 'MAY_1') {
+            const folder = createIcon('SÁCH LỚP 12', 'fa-folder', 'folder');
+            if(state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared){
+                 folder.classList.add('shared');
+                 const overlay = document.createElement('div');
+                 overlay.className = 'shared-overlay';
+                 folder.querySelector('div').appendChild(overlay);
+            }
+            mainContent.appendChild(folder);
+        } else if (computerName === 'MAY_2') {
+             const back = createIcon('Go to Network', 'fa-arrow-left', 'navigation');
+             back.addEventListener('click', () => navigateTo('Network'));
+             mainContent.appendChild(back);
+             
+             // Check if can see shared folder from MAY_1
+             if (state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared) {
+                const networkLocation = createIcon('MAY_1', 'fa-desktop', 'computer');
+                networkLocation.addEventListener('click', () => {
+                    if (state.tasks.t2s3) {
+                       completeTask('t2s4');
+                       mainContent.innerHTML = '';
+                       const sharedFolder = createIcon('SÁCH LỚP 12', 'fa-folder', 'folder');
+                       sharedFolder.classList.add('shared');
+                       const overlay = document.createElement('div');
+                       overlay.className = 'shared-overlay';
+                       sharedFolder.querySelector('div').appendChild(overlay);
+                       mainContent.appendChild(sharedFolder);
+                       addressBar.textContent = `Network\\MAY_1`;
+                    }
+                });
+                mainContent.appendChild(networkLocation);
+             }
+        }
+    }
+
+    function createIcon(name, iconClass, type) {
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = 'flex flex-col items-center text-center cursor-pointer p-2 rounded hover:bg-blue-100';
+        iconWrapper.dataset.name = name;
+        iconWrapper.dataset.type = type;
+        
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'relative text-5xl text-yellow-500 mb-1';
+        if(type === 'computer') iconDiv.className = 'relative text-5xl text-gray-600 mb-1';
+        if(type === 'navigation') iconDiv.className = 'relative text-5xl text-blue-600 mb-1';
+        
+        const icon = document.createElement('i');
+        icon.className = `fas ${iconClass}`;
+        iconDiv.appendChild(icon);
+        
+        const text = document.createElement('span');
+        text.className = 'text-xs break-words w-16';
+        text.textContent = name;
+        
+        iconWrapper.appendChild(iconDiv);
+        iconWrapper.appendChild(text);
+
+        // Event listeners for context menu
+        iconWrapper.addEventListener('contextmenu', (e) => showContextMenu(e, iconWrapper));
+        iconWrapper.addEventListener('touchstart', (e) => handleTouchStart(e, iconWrapper));
+        iconWrapper.addEventListener('touchend', handleTouchEnd);
+        
+        return iconWrapper;
+    }
+
+    // --- NAVIGATION ---
+    function navigateTo(location) {
+        state.currentLocation = location;
+        render();
+    }
+    
+    navNetwork.addEventListener('click', () => navigateTo('Network'));
+    
+    // --- TASK LOGIC ---
+    function completeTask(task) {
+        if (state.tasks[task]) return; // Already completed
+        state.tasks[task] = true;
+        updateTaskListUI();
+        showToast(`Hoàn thành bước: ${task.replace('t','Nhiệm vụ ').replace('s',' bước ')}`);
+    }
+
+    function updateTaskListUI() {
+        for (const task in state.tasks) {
+            const el = document.getElementById(task);
+            if (el) {
+                if(state.tasks[task]) {
+                    el.classList.add('text-green-600', 'line-through');
+                    el.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> ${el.innerText}`;
+                } else {
+                    el.classList.remove('text-green-600', 'line-through');
+                    el.innerHTML = el.innerText.replace('✓ ', '');
+                }
+            }
+        }
+    }
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.remove('hidden');
+        setTimeout(() => { toast.classList.add('hidden'); }, 2000);
+    }
+
+    // --- CONTEXT MENU LOGIC (Right-click & Long-press) ---
+    function showContextMenu(e, target) {
+        e.preventDefault();
+        if (target.dataset.type !== 'folder' || target.dataset.name !== 'SÁCH LỚP 12' || state.currentLocation !== 'MAY_1') {
+            return;
+        }
+        state.contextTarget = target;
+        contextMenu.style.top = `${e.pageY}px`;
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.classList.remove('hidden');
+    }
+
+    function handleTouchStart(e, target) {
+        state.longPressTimer = setTimeout(() => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            showContextMenu({ pageX: touch.pageX, pageY: touch.pageY, preventDefault: () => {} }, target);
+        }, 500); // 500ms for long press
+    }
+
+    function handleTouchEnd() {
+        clearTimeout(state.longPressTimer);
+    }
+    
+    document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+
+    // --- MODAL WINDOWS LOGIC ---
+    // Properties Window
+    contextProperties.addEventListener('click', () => {
+        if(state.contextTarget) {
+            propertiesWindow.classList.remove('hidden');
+            completeTask('t2s1');
+        }
+    });
+
+    const closeButtons = [
+        document.getElementById('close-properties'), 
+        document.getElementById('ok-properties'), 
+        document.getElementById('cancel-properties')
+    ];
+    closeButtons.forEach(btn => btn.addEventListener('click', () => propertiesWindow.classList.add('hidden')));
+    
+    const tabButtons = propertiesWindow.querySelectorAll('.tab-button');
+    const tabContents = propertiesWindow.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-white');
+            });
+            tabContents.forEach(content => content.classList.add('hidden'));
+            
+            button.classList.add('border-blue-500', 'bg-white');
+            document.getElementById(`tab-${button.dataset.tab}`).classList.remove('hidden');
+        });
+    });
+
+    // Share Window
+    document.getElementById('share-button').addEventListener('click', () => {
+        completeTask('t2s2');
+        shareWindow.classList.remove('hidden');
+    });
+
+    document.getElementById('cancel-share-button').addEventListener('click', () => {
+        shareWindow.classList.add('hidden');
+    });
+
+    document.getElementById('add-user-button').addEventListener('click', () => {
+        const userList = document.getElementById('shared-users-list');
+        const user = document.getElementById('user-select').value;
+        if (user === 'Everyone' && !document.getElementById('user-everyone')) {
+            userList.innerHTML += `<div id="user-everyone" class="flex justify-between items-center p-1"><span>Everyone</span><select><option>Read</option><option>Read/Write</option></select></div>`;
+        }
+    });
+    
+    document.getElementById('confirm-share-button').addEventListener('click', () => {
+        if(document.getElementById('user-everyone')) {
+            state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared = true;
+            completeTask('t2s3');
+            shareWindow.classList.add('hidden');
+            propertiesWindow.classList.add('hidden');
+            render();
+        } else {
+            alert('Bạn phải thêm "Everyone" vào danh sách trước khi chia sẻ.');
+        }
+    });
+
+    // Advanced Sharing Window
+    document.getElementById('advanced-sharing-button').addEventListener('click', () => {
+        completeTask('t3s1');
+        const checkbox = document.getElementById('share-folder-checkbox');
+        checkbox.checked = state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared;
+        advancedSharingWindow.classList.remove('hidden');
+    });
+    
+    const closeAdvancedButtons = [
+        document.getElementById('close-advanced'),
+        document.getElementById('cancel-advanced')
+    ];
+    closeAdvancedButtons.forEach(btn => btn.addEventListener('click', () => advancedSharingWindow.classList.add('hidden')));
+
+    document.getElementById('ok-advanced').addEventListener('click', () => {
+        const isChecked = document.getElementById('share-folder-checkbox').checked;
+        const wasShared = state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared;
+        
+        if (wasShared && !isChecked) {
+            completeTask('t3s2');
+            state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared = false;
+        }
+        
+        advancedSharingWindow.classList.add('hidden');
+        propertiesWindow.classList.add('hidden');
+        render();
+    });
+    
+    // Reset Button
+    resetButton.addEventListener('click', initializeState);
+
+    // Initial load
+    initializeState();
+});
+</script>
 </body>
 </html>
