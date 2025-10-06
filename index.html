@@ -10,95 +10,44 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    :root{
-      --brand: #0d6efd;
-    }
-    body{
-      background: #f6f8fb;
-    }
-    .navbar{
-      background: linear-gradient(135deg, var(--brand), #6ea8fe);
-    }
-    .hero{
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,.06);
-      padding: 1.25rem 1.25rem;
-    }
-    .card-activity{
-      border: none;
-      border-radius: 1rem;
-      box-shadow: 0 10px 28px rgba(0,0,0,.07);
-    }
-    .badge-soft{
-      background: rgba(13,110,253,.12);
-      color: #0d6efd;
-      border: 1px dashed #a3c3ff;
-    }
-    /* Drag items */
-    .sortable-list{
-      list-style: none;
-      padding-left: 0;
-    }
-    .sortable-item{
-      background: #fff;
-      border: 1px solid #e9eefb;
-      border-radius: .75rem;
-      padding: .75rem .9rem;
-      margin-bottom: .6rem;
-      display: flex; gap:.6rem; align-items: center;
-      cursor: grab;
-      transition: transform .06s ease;
-    }
-    .sortable-item:active{ cursor: grabbing; transform: scale(.995); }
-    .sortable-item .handle{
-      font-size: 1.2rem; color: #7b8aa0;
-    }
-    .drag-over{
-      outline: 2px dashed #0d6efd;
-      background: #eef5ff;
-    }
-    .drop-target{
-      min-height: 44px;
-      padding: .25rem;
-      border: 2px dashed #cfe2ff;
-      border-radius: .75rem;
-      background: #f8fbff;
-    }
-    .choice{ 
-      border: 1px solid #e9eefb; border-radius: .75rem; 
-      padding:.75rem; margin:.5rem 0; background:#fff;
-    }
-    .choice.correct{ border-color: #25a244; box-shadow: 0 0 0 3px rgba(37,162,68,.12); }
-    .choice.incorrect{ border-color: #dc3545; box-shadow: 0 0 0 3px rgba(220,53,69,.12); }
-    .pill{
-      display:inline-block; padding:.3rem .6rem; border-radius:999px;
-      background:#eef2ff; border:1px solid #d6defa; color:#3957e6; font-size:.9rem;
-    }
-    .reveal{
-      background:#f1f6ff; border:1px dashed #a9c6ff; border-radius:.75rem; padding:.75rem; display:none;
-    }
-    .perm-chip{
-      display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .6rem; 
-      border-radius:999px; background:#e8fff3; border:1px solid #b6f2cf; color:#1e7f49; font-weight:600;
-    }
-    .perm-chip.read{ background:#f3f7ff; border-color:#cfe2ff; color:#1a4fbf; }
-    .score-bubble{
-      font-weight:700; background:#fff; border-radius:999px; padding:.4rem .8rem; border:1px solid #e9eefb;
-      box-shadow: 0 8px 24px rgba(0,0,0,.06);
-    }
-    .footnote{
-      color:#6c7a91; font-size:.9rem;
-    }
+    :root{ --brand:#0d6efd; }
+    body{ background:#f6f8fb; }
+    .navbar{ background:linear-gradient(135deg,var(--brand),#6ea8fe); }
+    .hero{ background:white;border-radius:1rem;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:1.25rem; }
+    .card-activity{ border:none;border-radius:1rem;box-shadow:0 10px 28px rgba(0,0,0,.07); }
+    .badge-soft{ background:rgba(13,110,253,.12);color:#0d6efd;border:1px dashed #a3c3ff; }
+    .sortable-list{ list-style:none;padding-left:0; }
+    .sortable-item{ background:#fff;border:1px solid #e9eefb;border-radius:.75rem;padding:.75rem .9rem;margin-bottom:.6rem;display:flex;gap:.6rem;align-items:center;cursor:grab;transition:transform .06s ease; }
+    .sortable-item:active{ cursor:grabbing;transform:scale(.995); }
+    .sortable-item .handle{ font-size:1.2rem;color:#7b8aa0; }
+    .drag-over{ outline:2px dashed #0d6efd;background:#eef5ff; }
+    .drop-target{ min-height:44px;padding:.25rem;border:2px dashed #cfe2ff;border-radius:.75rem;background:#f8fbff; }
+    .choice{ border:1px solid #e9eefb;border-radius:.75rem;padding:.75rem;margin:.5rem 0;background:#fff; }
+    .choice.correct{ border-color:#25a244;box-shadow:0 0 0 3px rgba(37,162,68,.12); }
+    .choice.incorrect{ border-color:#dc3545;box-shadow:0 0 0 3px rgba(220,53,69,.12); }
+    .pill{ display:inline-block;padding:.3rem .6rem;border-radius:999px;background:#eef2ff;border:1px solid #d6defa;color:#3957e6;font-size:.9rem; }
+    .reveal{ background:#f1f6ff;border:1px dashed #a9c6ff;border-radius:.75rem;padding:.75rem;display:none; }
+    .perm-chip{ display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .6rem;border-radius:999px;background:#e8fff3;border:1px solid #b6f2cf;color:#1e7f49;font-weight:600; }
+    .perm-chip.read{ background:#f3f7ff;border-color:#cfe2ff;color:#1a4fbf; }
+    .score-bubble{ font-weight:700;background:#fff;border-radius:999px;padding:.4rem .8rem;border:1px solid #e9eefb;box-shadow:0 8px 24px rgba(0,0,0,.06); }
+    .footnote{ color:#6c7a91;font-size:.9rem; }
+
+    /* Simulation window (Activity 5) */
+    .sim-window{ background:#fff;border:1px solid #e6ecf7;border-radius:.75rem;box-shadow:0 8px 24px rgba(0,0,0,.06); }
+    .sim-titlebar{ display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:#f3f6fc;border-bottom:1px solid #e6ecf7;border-top-left-radius:.75rem;border-top-right-radius:.75rem; }
+    .sim-tabs .btn{ border:none;border-bottom:2px solid transparent;border-radius:0; }
+    .sim-tabs .btn.active{ border-color:#0d6efd;color:#0d6efd;background:transparent; }
+    .sim-pane{ padding:1rem; }
+    .sim-checkbox{ display:flex;align-items:center;gap:.5rem; }
+    .sim-footer{ padding:.75rem 1rem;border-top:1px solid #e6ecf7;background:#f9fbff;border-bottom-left-radius:.75rem;border-bottom-right-radius:.75rem;display:flex;gap:.5rem;justify-content:end; }
+    .kbd{ background:#111;color:#fff;border-radius:.35rem;padding:.06rem .35rem;font-size:.85rem; }
   </style>
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-dark">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#">
-        <i class="bi bi-folder-symlink-fill me-2"></i> Chia sẻ tệp & thư mục — Bài tập củng cố
-      </a>
+      <a class="navbar-brand fw-bold" href="#"><i class="bi bi-folder-symlink-fill me-2"></i> Chia sẻ tệp & thư mục — Bài tập củng cố</a>
       <span class="text-white-50 small d-none d-md-inline">Tương thích di động • Phản hồi tức thì</span>
     </div>
   </nav>
@@ -117,14 +66,12 @@
         </div>
         <div class="d-flex align-items-center gap-2">
           <span class="score-bubble" id="scoreBubble" aria-live="polite">Điểm: 0</span>
-          <button class="btn btn-outline-secondary" id="btnReset">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>Làm lại
-          </button>
+          <button class="btn btn-outline-secondary" id="btnReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Làm lại</button>
         </div>
       </div>
     </section>
 
-    <!-- ACTIVITY 1: Reorder steps -->
+    <!-- ACTIVITY 1 -->
     <section class="card card-activity mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -135,24 +82,20 @@
           </div>
         </div>
         <p class="mb-3 footnote">Kéo thả để sắp xếp các bước đúng quy trình.</p>
-
-        <ul id="orderList" class="sortable-list" aria-label="Kéo thả sắp xếp">
-          <!-- Items will be injected by JS with a shuffled order -->
-        </ul>
+        <ul id="orderList" class="sortable-list" aria-label="Kéo thả sắp xếp"></ul>
         <div id="orderFeedback" class="mt-2" aria-live="polite"></div>
-
         <div class="reveal mt-3" id="orderReveal">
           <ol class="mb-0">
             <li><strong>Mở Properties</strong>: Nhấp phải thư mục → <em>Properties</em> → thẻ <em>Sharing</em>.</li>
             <li><strong>Nhấp Share…</strong> trong phần <em>Network File and Folder Sharing</em>.</li>
-            <li><strong>Chọn Everyone → Add</strong> trong cửa sổ <em>Choose people to share with</em>.</li>
-            <li><strong>Thiết lập Permission</strong>: <em>Read</em> hoặc <em>Read/Write</em> → <strong>Share</strong>.</li>
+            <li><strong>Chọn Everyone → Add</strong> trong <em>Choose people to share with</em>.</li>
+            <li><strong>Thiết lập Permission</strong> (Read/Read-Write) → <strong>Share</strong>.</li>
           </ol>
         </div>
       </div>
     </section>
 
-    <!-- ACTIVITY 2: MCQ -->
+    <!-- ACTIVITY 2 -->
     <section class="card card-activity mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -165,83 +108,35 @@
         <div class="mt-3">
           <div class="mb-3">
             <p class="mb-2 fw-semibold">2.1 Khi chọn <em>Everyone</em> và để mặc định <em>Permission Level = Read</em>, người dùng trong mạng có thể:</p>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q1" value="A" class="form-check-input mt-1">
-                <span>Chỉ xem và sao chép, không sửa hoặc xóa tệp.</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q1" value="B" class="form-check-input mt-1">
-                <span>Toàn quyền sửa/xóa/đổi tên tệp.</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q1" value="C" class="form-check-input mt-1">
-                <span>Không thể nhìn thấy thư mục chia sẻ.</span>
-              </label>
-            </div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q1" value="A" class="form-check-input mt-1"><span>Chỉ xem và sao chép, không sửa hoặc xóa tệp.</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q1" value="B" class="form-check-input mt-1"><span>Toàn quyền sửa/xóa/đổi tên tệp.</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q1" value="C" class="form-check-input mt-1"><span>Không thể nhìn thấy thư mục chia sẻ.</span></label></div>
           </div>
-
           <div class="mb-3">
             <p class="mb-2 fw-semibold">2.2 Để cho phép sửa nội dung trong thư mục chia sẻ, cần đặt <em>Permission Level</em> là:</p>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q2" value="A" class="form-check-input mt-1">
-                <span>Read</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q2" value="B" class="form-check-input mt-1">
-                <span>Read/Write</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q2" value="C" class="form-check-input mt-1">
-                <span>Hidden</span>
-              </label>
-            </div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q2" value="A" class="form-check-input mt-1"><span>Read</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q2" value="B" class="form-check-input mt-1"><span>Read/Write</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q2" value="C" class="form-check-input mt-1"><span>Hidden</span></label></div>
           </div>
-
           <div class="mb-2">
             <p class="mb-2 fw-semibold">2.3 Biểu tượng thư mục chia sẻ trong <em>Network</em> thường hiển thị:</p>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q3" value="A" class="form-check-input mt-1">
-                <span>Một dây cáp/đường gạch nhỏ màu xanh bên cạnh thư mục.</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q3" value="B" class="form-check-input mt-1">
-                <span>Biểu tượng thùng rác.</span>
-              </label>
-            </div>
-            <div class="choice">
-              <label class="d-flex align-items-start gap-2">
-                <input type="radio" name="q3" value="C" class="form-check-input mt-1">
-                <span>Biểu tượng chìa khóa màu đỏ.</span>
-              </label>
-            </div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q3" value="A" class="form-check-input mt-1"><span>Một dây cáp/đường gạch nhỏ màu xanh bên cạnh thư mục.</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q3" value="B" class="form-check-input mt-1"><span>Biểu tượng thùng rác.</span></label></div>
+            <div class="choice"><label class="d-flex align-items-start gap-2"><input type="radio" name="q3" value="C" class="form-check-input mt-1"><span>Biểu tượng chìa khóa màu đỏ.</span></label></div>
           </div>
           <div id="mcqFeedback" class="mt-2" aria-live="polite"></div>
-
           <div class="reveal mt-3" id="mcqReveal">
             <ul class="mb-0">
-              <li><strong>2.1</strong> → Đáp án <strong>A</strong>: Read chỉ cho phép xem/sao chép.</li>
-              <li><strong>2.2</strong> → Đáp án <strong>B</strong>: Cho phép xem & sửa (Read/Write).</li>
-              <li><strong>2.3</strong> → Đáp án <strong>A</strong>: Thư mục chia sẻ có dấu hiệu dây cáp xanh.</li>
+              <li><strong>2.1</strong> → A</li>
+              <li><strong>2.2</strong> → B</li>
+              <li><strong>2.3</strong> → A</li>
             </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ACTIVITY 3: Drag & drop match -->
+    <!-- ACTIVITY 3 -->
     <section class="card card-activity mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -252,13 +147,10 @@
           </div>
         </div>
         <p class="footnote mb-3">Kéo thả thẻ <em>Khái niệm</em> sang đúng <em>Mô tả</em>.</p>
-
         <div class="row g-3">
           <div class="col-lg-4">
             <h6 class="mb-2">Khái niệm</h6>
-            <div id="bank" class="drop-target" aria-label="Ngân hàng thẻ kéo thả">
-              <!-- tokens injected by JS -->
-            </div>
+            <div id="bank" class="drop-target" aria-label="Ngân hàng thẻ kéo thả"></div>
           </div>
           <div class="col-lg-8">
             <h6 class="mb-2">Mô tả (thả thẻ vào đúng dòng)</h6>
@@ -269,9 +161,9 @@
               </div>
               <div class="list-group-item d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
                 <div class="fw-semibold flex-grow-1">Advanced Sharing…</div>
-                <div class="drop-target flex-grow-1" data-accept="advanced" aria-label="Ô thả: Advanced Sharing "></div>
+                <div class="drop-target flex-grow-1" data-accept="advanced" aria-label="Ô thả: Advanced Sharing"></div>
               </div>
-              <div class="list-group-item d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
+              <div class="list-group-item d-flex flex-column flex-column flex-md-row align-items-start align-items-md-center gap-2">
                 <div class="fw-semibold flex-grow-1">Password Protection</div>
                 <div class="drop-target flex-grow-1" data-accept="password" aria-label="Ô thả: Password Protection"></div>
               </div>
@@ -282,21 +174,19 @@
             </div>
           </div>
         </div>
-
         <div id="matchFeedback" class="mt-3" aria-live="polite"></div>
-
         <div class="reveal mt-3" id="matchReveal">
           <ul class="mb-0">
             <li><strong>Network File and Folder Sharing</strong> → Chia sẻ nhanh qua nút <em>Share…</em>.</li>
             <li><strong>Advanced Sharing…</strong> → Thiết lập nâng cao, <em>Share this folder</em>, hủy chia sẻ.</li>
-            <li><strong>Password Protection</strong> → Yêu cầu xác thực khi truy cập chia sẻ.</li>
+            <li><strong>Password Protection</strong> → Yêu cầu xác thực khi truy cập.</li>
             <li><strong>Everyone</strong> → Nhóm người dùng trong mạng nội bộ.</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- ACTIVITY 4: Scenario - permission -->
+    <!-- ACTIVITY 4 -->
     <section class="card card-activity mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -304,13 +194,10 @@
           <button class="btn btn-sm btn-outline-primary" id="checkScenario"><i class="bi bi-check2-circle me-1"></i>Chấm</button>
         </div>
         <p class="footnote mb-3">Chọn quyền phù hợp cho từng nhu cầu.</p>
-
         <div class="row g-3">
           <div class="col-md-6">
             <div class="p-3 border rounded-3 bg-white h-100">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-people-fill"></i><span class="fw-semibold">Chia sẻ tài liệu tham khảo</span>
-              </div>
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-people-fill"></i><span class="fw-semibold">Chia sẻ tài liệu tham khảo</span></div>
               <p class="mb-2">Các bạn lớp khác chỉ được xem & tải về, không sửa.</p>
               <select class="form-select scenario" data-answer="Read">
                 <option value="">— Chọn Permission Level —</option>
@@ -320,12 +207,9 @@
               <div class="mt-2 small" aria-live="polite"></div>
             </div>
           </div>
-
           <div class="col-md-6">
             <div class="p-3 border rounded-3 bg-white h-100">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-pencil-square"></i><span class="fw-semibold">Thư mục dự án nhóm</span>
-              </div>
+              <div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-pencil-square"></i><span class="fw-semibold">Thư mục dự án nhóm</span></div>
               <p class="mb-2">Mọi thành viên cần thêm/sửa/xóa file.</p>
               <select class="form-select scenario" data-answer="Read/Write">
                 <option value="">— Chọn Permission Level —</option>
@@ -339,34 +223,110 @@
       </div>
     </section>
 
-    <!-- ACTIVITY 5: Short answer (unshare) -->
-    <section class="card card-activity mb-4">
+    <!-- ACTIVITY 5 (NEW): Simulation -->
+    <section class="card card-activity mb-4" id="activity5">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <h2 class="h5 mb-0">5) Câu hỏi ngắn: Hủy chia sẻ như thế nào?</h2>
-          <div>
-            <button class="btn btn-sm btn-outline-primary" id="checkShort"><i class="bi bi-check2-circle me-1"></i>Chấm</button>
-            <button class="btn btn-sm btn-outline-dark" id="revealShort"><i class="bi bi-key me-1"></i>Gợi ý</button>
+          <h2 class="h5 mb-0">5) Mô phỏng thao tác: Hủy chia sẻ thư mục</h2>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="resetSim"><i class="bi bi-arrow-repeat me-1"></i>Đặt lại</button>
           </div>
         </div>
-        <p class="footnote mb-2">Mô tả ngắn gọn các bước hủy chia sẻ thư mục trong Windows (<em>Advanced Sharing</em>).</p>
-        <textarea id="shortAns" class="form-control" rows="3" placeholder="Viết các bước..."></textarea>
-        <div id="shortFeedback" class="mt-2" aria-live="polite"></div>
+        <p class="footnote mb-3">Thực hiện đúng luồng: <span class="kbd">Right-click</span> thư mục → <strong>Properties</strong> → thẻ <strong>Sharing</strong> → <strong>Advanced Sharing…</strong> → bỏ chọn <strong>Share this folder</strong> → <strong>Apply</strong>/<strong>OK</strong>.</p>
 
-        <div class="reveal mt-3" id="shortReveal">
+        <!-- Folder context -->
+        <div class="mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-folder-fill text-warning"></i>
+            <span class="fw-semibold">SÁCH LỚP 12</span>
+            <span class="text-muted small">trên MAY_1</span>
+          </div>
+          <div class="mt-2 d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary btn-sm" id="btnContextProps"><i class="bi bi-mouse me-1"></i> Nhấp phải → Properties</button>
+            <span class="small text-muted">Mẹo: Bấm nút này thay cho thao tác nhấp phải.</span>
+          </div>
+        </div>
+
+        <!-- Simulated window -->
+        <div class="sim-window">
+          <div class="sim-titlebar">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-window"></i>
+              <span class="fw-semibold">SÁCH LỚP 12 — Properties</span>
+            </div>
+            <span class="small text-muted">Bước <span id="simStep">1</span>/5</span>
+          </div>
+
+          <!-- Tabs -->
+          <div class="px-3 pt-2 sim-tabs d-flex flex-wrap gap-2 border-bottom">
+            <button class="btn btn-sm btn-light" data-tab="general" disabled>General</button>
+            <button class="btn btn-sm btn-light" data-tab="sharing">Sharing</button>
+            <button class="btn btn-sm btn-light" data-tab="security" disabled>Security</button>
+            <button class="btn btn-sm btn-light" data-tab="prev" disabled>Previous Versions</button>
+            <button class="btn btn-sm btn-light" data-tab="customize" disabled>Customize</button>
+          </div>
+
+          <!-- Pane: General (placeholder) -->
+          <div class="sim-pane" id="pane-general">
+            <p class="text-muted mb-0">Thông tin: Size, Contains, Created…, Read-only, Hidden, Advanced…</p>
+          </div>
+
+          <!-- Pane: Sharing -->
+          <div class="sim-pane d-none" id="pane-sharing">
+            <div class="mb-3">
+              <div class="fw-semibold mb-1">Network File and Folder Sharing</div>
+              <button class="btn btn-outline-primary btn-sm" id="btnShare" disabled>Share…</button>
+              <span class="text-muted small ms-2">(tạm ẩn trong mô phỏng này)</span>
+            </div>
+            <div class="mb-3">
+              <div class="fw-semibold mb-1">Advanced Sharing…</div>
+              <button class="btn btn-primary btn-sm" id="btnAdvanced"><i class="bi bi-sliders me-1"></i> Advanced Sharing…</button>
+            </div>
+            <div class="mb-3">
+              <div class="fw-semibold mb-1">Password Protection</div>
+              <span class="text-muted small">Yêu cầu đăng nhập khi truy cập.</span>
+            </div>
+          </div>
+
+          <!-- Pane: Advanced Sharing -->
+          <div class="sim-pane d-none" id="pane-advanced">
+            <div class="sim-checkbox mb-3">
+              <input class="form-check-input" type="checkbox" id="chkShare" checked>
+              <label for="chkShare" class="form-check-label"><strong>Share this folder</strong></label>
+            </div>
+            <div class="mb-2 small text-muted">Bỏ dấu tick để hủy chia sẻ.</div>
+          </div>
+
+          <div class="sim-footer">
+            <button class="btn btn-secondary btn-sm" id="btnBack" disabled>Back</button>
+            <div class="flex-grow-1"></div>
+            <button class="btn btn-outline-primary btn-sm" id="btnApply" disabled>Apply</button>
+            <button class="btn btn-primary btn-sm" id="btnOK" disabled>OK</button>
+          </div>
+        </div>
+
+        <div class="mt-3" id="simFeedback" aria-live="polite"></div>
+
+        <div class="reveal mt-3" id="simReveal">
           <ol class="mb-0">
-            <li>Nhấp phải thư mục → <strong>Properties</strong> → thẻ <strong>Sharing</strong> → <strong>Advanced Sharing…</strong></li>
-            <li>Bỏ dấu <em>✓</em> ở <strong>Share this folder</strong> → <strong>Apply/OK</strong>.</li>
+            <li>Nhấp phải thư mục <strong>SÁCH LỚP 12</strong> → <strong>Properties</strong>.</li>
+            <li>Chọn thẻ <strong>Sharing</strong>.</li>
+            <li>Nhấp <strong>Advanced Sharing…</strong>.</li>
+            <li>Bỏ dấu <strong>Share this folder</strong>.</li>
+            <li><strong>Apply</strong> → <strong>OK</strong> để hoàn tất.</li>
           </ol>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" id="btnGradeSim"><i class="bi bi-check2-circle me-1"></i>Chấm</button>
+          <button class="btn btn-sm btn-outline-dark" id="btnRevealSim"><i class="bi bi-key me-1"></i>Gợi ý</button>
         </div>
       </div>
     </section>
 
     <!-- Footer actions -->
     <section class="text-center mb-5">
-      <button class="btn btn-lg btn-primary" id="gradeAll">
-        <i class="bi bi-trophy-fill me-1"></i> Chấm tất cả & tính điểm
-      </button>
+      <button class="btn btn-lg btn-primary" id="gradeAll"><i class="bi bi-trophy-fill me-1"></i> Chấm tất cả & tính điểm</button>
       <div class="mt-2 footnote">Mẹo: Sau khi hoàn tất, bạn có thể chụp màn hình nộp kết quả.</div>
     </section>
   </main>
@@ -385,20 +345,10 @@
     // Shared scoring state
     // -----------------------------
     let totalScore = 0;
-    function updateScoreBubble(){
-      document.getElementById('scoreBubble').textContent = "Điểm: " + totalScore;
-    }
-    function addPoints(n){
-      totalScore += n; updateScoreBubble();
-    }
-    function resetPoints(){
-      totalScore = 0; updateScoreBubble();
-    }
-
-    // Utility to show temp feedback
-    function toast(elem, html, color="primary"){
-      elem.innerHTML = '<span class="text-'+color+'"><i class="bi bi-info-circle me-1"></i>'+html+'</span>';
-    }
+    function updateScoreBubble(){ document.getElementById('scoreBubble').textContent = "Điểm: " + totalScore; }
+    function addPoints(n){ totalScore += n; updateScoreBubble(); }
+    function resetPoints(){ totalScore = 0; updateScoreBubble(); }
+    function toast(elem, html, color="primary"){ elem.innerHTML = '<span class="text-'+color+'"><i class="bi bi-info-circle me-1"></i>'+html+'</span>'; }
 
     // -----------------------------
     // Activity 1: Reorder steps
@@ -409,8 +359,7 @@
       { id: "s3", text: "Chọn Everyone → Add; đặt Permission (Read/Read-Write)" },
       { id: "s4", text: "Nhấp Share để xác nhận chia sẻ" },
     ];
-    const correctOrder = orderSteps.map(s => s.id); // ["s1","s2","s3","s4"]
-
+    const correctOrder = orderSteps.map(s => s.id);
     const orderList = document.getElementById('orderList');
     function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]); }
     function renderOrder(shuffled=true){
@@ -446,7 +395,6 @@
       });
     }
     renderOrder(true);
-
     document.getElementById('checkOrder').addEventListener('click', ()=>{
       const ids = [...orderList.children].map(li=>li.dataset.id);
       const ok = JSON.stringify(ids) === JSON.stringify(correctOrder);
@@ -455,8 +403,7 @@
       else{ toast(out, "Chưa đúng. Gợi ý: Bắt đầu từ Properties → Sharing → Share…", "danger"); }
     });
     document.getElementById('revealOrder').addEventListener('click', ()=>{
-      document.getElementById('orderReveal').style.display='block';
-      renderOrder(false);
+      document.getElementById('orderReveal').style.display='block'; renderOrder(false);
     });
 
     // -----------------------------
@@ -505,9 +452,7 @@
       });
       attachDrag(chipSelectorAll());
     }
-    function chipSelectorAll(){
-      return [...document.querySelectorAll('#bank .sortable-item, .list-group .drop-target .sortable-item')];
-    }
+    function chipSelectorAll(){ return [...document.querySelectorAll('#bank .sortable-item, .list-group .drop-target .sortable-item')]; }
     function attachDrag(items){
       let drag = null;
       items.forEach(el=>{
@@ -521,14 +466,12 @@
           e.preventDefault();
           target.classList.remove('drag-over');
           if(!drag) return;
-          // Each target holds max 1 chip
           if(target.querySelector('.sortable-item')) bank.appendChild(target.querySelector('.sortable-item'));
           target.appendChild(drag);
         });
       });
     }
     renderTokens();
-
     document.getElementById('checkMatch').addEventListener('click', ()=>{
       let correct = 0;
       document.querySelectorAll('.list-group .drop-target').forEach(t=>{
@@ -540,7 +483,6 @@
       else{ toast(fb, "Bạn đúng "+correct+"/4. Kéo thả lại cho chính xác nhé.", "warning"); }
     });
     document.getElementById('revealMatch').addEventListener('click', ()=>{
-      // Auto place correct tokens
       document.querySelectorAll('.list-group .drop-target').forEach(t=>{
         const val = t.dataset.accept;
         const chip = [...bank.children, ...document.querySelectorAll('.list-group .drop-target .sortable-item')].find(c=>c.dataset.value===val);
@@ -566,58 +508,169 @@
     });
 
     // -----------------------------
-    // Activity 5: Short answer (keyword check)
+    // Activity 5: Simulation
     // -----------------------------
-    const keywords = [
-      /properties/i, /sharing/i, /advanced/i, /share this folder/i, /bỏ.*dấu|uncheck/i, /apply|ok/i
-    ];
-    document.getElementById('checkShort').addEventListener('click', ()=>{
-      const text = document.getElementById('shortAns').value.trim();
-      const fb = document.getElementById('shortFeedback');
-      if(!text){ toast(fb, "Hãy nhập câu trả lời của bạn.", "warning"); return; }
-      let hit = 0;
-      keywords.forEach(re=>{ if(re.test(text)) hit++; });
-      if(hit >= 4){ toast(fb, "Tốt! Bạn nêu đủ ý chính để hủy chia sẻ.", "success"); addPoints(2); }
-      else{ toast(fb, "Còn thiếu ý. Gợi ý: Properties → Sharing → Advanced Sharing… → bỏ chọn “Share this folder”.", "danger"); }
+    const sim = {
+      step: 1, // 1..5
+      scored: false
+    };
+    const simStepEl = document.getElementById('simStep');
+    const fbSim = document.getElementById('simFeedback');
+
+    const paneGeneral = document.getElementById('pane-general');
+    const paneSharing = document.getElementById('pane-sharing');
+    const paneAdvanced = document.getElementById('pane-advanced');
+
+    const btnContextProps = document.getElementById('btnContextProps');
+    const btnAdvanced = document.getElementById('btnAdvanced');
+    const chkShare = document.getElementById('chkShare');
+    const btnApply = document.getElementById('btnApply');
+    const btnOK = document.getElementById('btnOK');
+    const btnBack = document.getElementById('btnBack');
+    const btnRevealSim = document.getElementById('btnRevealSim');
+    const btnGradeSim = document.getElementById('btnGradeSim');
+    const resetSim = document.getElementById('resetSim');
+
+    const tabBtns = document.querySelectorAll('.sim-tabs .btn[data-tab]');
+    function setTabs(active){
+      tabBtns.forEach(b=>{
+        b.classList.toggle('active', b.dataset.tab === active);
+      });
+      paneGeneral.classList.toggle('d-none', active!=='general');
+      paneSharing.classList.toggle('d-none', active!=='sharing');
+      paneAdvanced.classList.toggle('d-none', active!=='advanced');
+    }
+    function setStep(n){
+      sim.step = n;
+      simStepEl.textContent = n;
+      // Buttons state
+      btnBack.disabled = (n<=2); // allow back only inside panes after sharing tab chosen
+      if(n<5){ btnApply.disabled = true; btnOK.disabled = true; }
+    }
+    function resetSimulation(){
+      setTabs('general');
+      chkShare.checked = true;
+      btnApply.disabled = true;
+      btnOK.disabled = true;
+      btnBack.disabled = true;
+      setStep(1);
+      fbSim.innerHTML = '<span class="text-muted"><i class="bi bi-lightbulb me-1"></i>Bấm <strong>Nhấp phải → Properties</strong> để bắt đầu.</span>';
+      sim.scored = false;
+    }
+    resetSimulation();
+
+    // Start: Right-click → Properties
+    btnContextProps.addEventListener('click', ()=>{
+      if(sim.step!==1){ toast(fbSim, "Bạn đã mở Properties rồi. Chuyển sang thẻ <b>Sharing</b> nhé.", "warning"); return; }
+      toast(fbSim, "Đúng! Bây giờ chọn thẻ <b>Sharing</b>.", "success");
+      setStep(2);
     });
-    document.getElementById('revealShort').addEventListener('click', ()=>{ document.getElementById('shortReveal').style.display='block'; });
+
+    // Click tabs
+    tabBtns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const target = b.dataset.tab;
+        if(target==='sharing'){
+          if(sim.step===1){ toast(fbSim,"Hãy mở Properties trước (nút ở trên).","danger"); return; }
+          setTabs('sharing'); setStep(3);
+          toast(fbSim,"Tốt! Nhấp <b>Advanced Sharing…</b> để tiếp tục.","primary");
+        }else if(target==='general'){
+          setTabs('general');
+          if(sim.step>1) btnBack.disabled = true;
+        }
+      });
+    });
+
+    // Advanced Sharing…
+    btnAdvanced.addEventListener('click', ()=>{
+      if(sim.step<3){ toast(fbSim,"Cần ở thẻ <b>Sharing</b> trước đã.","danger"); return; }
+      setTabs('advanced'); setStep(4);
+      toast(fbSim,"Bỏ dấu ở <b>Share this folder</b>, rồi Apply/OK.","primary");
+    });
+
+    // Checkbox change
+    chkShare.addEventListener('change', ()=>{
+      if(sim.step<4){ toast(fbSim,"Hãy mở <b>Advanced Sharing…</b> trước.","danger"); chkShare.checked = true; return; }
+      if(!chkShare.checked){
+        toast(fbSim,"Đã bỏ chia sẻ. Nhấn <b>Apply</b> rồi <b>OK</b> để hoàn tất.","success");
+        btnApply.disabled = false;
+      }else{
+        toast(fbSim,"Đã bật lại chia sẻ. Bỏ chọn để hủy chia sẻ.","warning");
+        btnApply.disabled = true; btnOK.disabled = true;
+        setStep(4);
+      }
+    });
+
+    // Apply & OK
+    btnApply.addEventListener('click', ()=>{
+      if(sim.step===4 && !chkShare.checked){
+        btnOK.disabled = false;
+        toast(fbSim,"Thiết lập đã áp dụng. Bấm <b>OK</b> để đóng.","primary");
+      }
+    });
+    btnOK.addEventListener('click', ()=>{
+      if(sim.step===4 && !chkShare.checked && !btnOK.disabled){
+        setTabs('general'); setStep(5);
+        toast(fbSim,"Hoàn tất! Thư mục đã được hủy chia sẻ.","success");
+        if(!sim.scored){ addPoints(2); sim.scored=true; }
+      }
+    });
+
+    // Back button
+    btnBack.addEventListener('click', ()=>{
+      if(sim.step===3){ setTabs('general'); setStep(2); }
+      if(sim.step===4){ setTabs('sharing'); setStep(3); }
+      toast(fbSim,"Đã quay lại.","secondary");
+    });
+
+    // Grade & Reveal for simulation
+    btnGradeSim.addEventListener('click', ()=>{
+      if(sim.step===5){ toast(fbSim,"Bạn đã hoàn tất mô phỏng hủy chia sẻ.","success"); }
+      else{ toast(fbSim,"Chưa xong. Gợi ý: Sharing → Advanced Sharing… → bỏ chọn Share this folder → Apply → OK.","warning"); }
+    });
+    btnRevealSim.addEventListener('click', ()=>{ document.getElementById('simReveal').style.display='block'; });
+
+    resetSim.addEventListener('click', resetSimulation);
 
     // -----------------------------
-    // Grade all & Reset
+    // Grade all & Reset all
     // -----------------------------
     document.getElementById('gradeAll').addEventListener('click', ()=>{
-      // Trigger each check (no double points if clicked multiple times carelessly)
-      // We will simply run checks; user controls points by clicking once logically.
       document.getElementById('checkOrder').click();
       document.getElementById('checkMCQ').click();
       document.getElementById('checkMatch').click();
       document.getElementById('checkScenario').click();
-      document.getElementById('checkShort').click();
+      document.getElementById('btnGradeSim').click();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     document.getElementById('btnReset').addEventListener('click', ()=>{
-      // Reset choices & UI
+      // Reset points & UI for all activities
       resetPoints();
 
+      // Act1
       renderOrder(true);
       document.getElementById('orderFeedback').innerHTML = "";
       document.getElementById('orderReveal').style.display='none';
 
+      // Act2
       document.querySelectorAll('.choice').forEach(c=>c.classList.remove('correct','incorrect'));
       document.querySelectorAll('input[type="radio"]').forEach(r=>r.checked=false);
       document.getElementById('mcqFeedback').innerHTML = "";
       document.getElementById('mcqReveal').style.display='none';
 
+      // Act3
       renderTokens();
       document.getElementById('matchFeedback').innerHTML = "";
       document.getElementById('matchReveal').style.display='none';
 
+      // Act4
       document.querySelectorAll('.scenario').forEach(s=>{ s.value=""; const hint=s.parentElement.querySelector('.small'); if(hint) hint.innerHTML=""; });
 
-      document.getElementById('shortAns').value="";
-      document.getElementById('shortFeedback').innerHTML="";
-      document.getElementById('shortReveal').style.display='none';
+      // Act5 (simulation)
+      resetSimulation();
+      document.getElementById('simReveal').style.display='none';
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   </script>
