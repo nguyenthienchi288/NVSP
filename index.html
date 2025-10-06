@@ -1,488 +1,845 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mô Phỏng: Chia Sẻ Tệp và Thư Mục</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Sử dụng font hệ thống cho giao diện giống Windows */
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            user-select: none;
-        }
-
-        /* Tùy chỉnh thanh cuộn */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-        
-        /* Hiệu ứng active cho nút bấm giống Windows */
-        .win-button:active {
-            border-color: #005a9e;
-            background-color: #cce8ff;
-        }
-
-        /* Lớp phủ cho thư mục đã được chia sẻ */
-        .shared-overlay {
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 32px;
-            height: 16px;
-            background-color: #2578d9;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .shared-overlay::before {
-            content: '';
-            position: absolute;
-            width: 24px;
-            height: 2px;
-            background-color: #fff;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Mô phỏng Windows 10 - Chia sẻ tệp/thư mục (File Explorer)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root{
+      --win-blue:#0078d7;
+      --win-border:#dcdcdc;
+      --win-bg:#f3f3f3;
+      --win-text:#222;
+      --nav-bg:#ffffff;
+      --content-bg:#ffffff;
+    }
+    body{ background: var(--win-bg); color: var(--win-text); }
+    .explorer{
+      border:1px solid var(--win-border);
+      border-radius:8px; overflow:hidden;
+      box-shadow:0 6px 24px rgba(0,0,0,.08);
+      background: #fff;
+    }
+    .explorer-header{
+      background: linear-gradient(180deg,#ffffff,#f7f7f7);
+      border-bottom:1px solid var(--win-border);
+      padding:.5rem .75rem;
+    }
+    .ribbon .btn{ border: none; }
+    .address-bar{
+      border:1px solid var(--win-border);
+      border-radius:4px; background:#fff;
+      padding:.25rem .5rem; display:flex; gap:.5rem; align-items:center;
+      min-height: 36px;
+    }
+    .crumb{ display:inline-flex; align-items:center; gap:.25rem; }
+    .crumb .bi{ opacity:.65; }
+    .sidebar{
+      background: var(--nav-bg);
+      border-right:1px solid var(--win-border);
+      min-height: 60vh;
+    }
+    .nav-item-fx{
+      padding:.5rem .75rem; display:flex; align-items:center; gap:.5rem; border-radius:6px; cursor:pointer;
+    }
+    .nav-item-fx.active, .nav-item-fx:hover{
+      background:#e9f3ff; color:#0b5ed7;
+    }
+    .content{
+      background: var(--content-bg); min-height: 60vh;
+    }
+    .tile{
+      border:1px solid var(--win-border);
+      border-radius:8px; padding:.75rem;
+      display:flex; align-items:center; gap:.75rem;
+      cursor:pointer; background:#fff;
+      transition: transform .08s ease;
+      position: relative;
+    }
+    .tile:active{ transform: scale(.99);}
+    .tile.selected{ outline:2px solid #0d6efd; outline-offset:-2px; }
+    .tile .overlay-share{
+      position:absolute; bottom:6px; right:8px;
+      font-size: .95rem; opacity:.85; color:#0d6efd;
+    }
+    .grid{ display:grid; gap:.75rem; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); }
+    /* context menu */
+    .ctx-menu{
+      position:fixed; z-index: 9999; display:none;
+      min-width: 200px; background:#fff; border:1px solid var(--win-border); border-radius:8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+    .ctx-item{ padding:.6rem .8rem; display:flex; gap:.6rem; align-items:center; cursor:pointer; }
+    .ctx-item:hover{ background:#f2f6ff; }
+    .mobile-toolbar{
+      position: sticky; top:0; z-index: 5; background:#fff; border-bottom:1px solid var(--win-border);
+    }
+    .badge-step{ font-weight:600; }
+    /* Windows-like tabs look (props modal) */
+    .nav-tabs .nav-link{ border:1px solid var(--win-border)!important; margin-right:.25rem; }
+    .nav-tabs .nav-link.active{ background:#fff!important; border-bottom-color:#fff!important; }
+    .tab-content{ border:1px solid var(--win-border); border-top:none; padding:1rem; border-radius:0 0 .5rem .5rem; }
+    .share-list table{ font-size: .95rem; }
+    .folder-icon{ font-size:2rem; color:#fbbc05; }
+    .computer-icon{ font-size:2rem; color:#6c757d; }
+    .network-cable{ font-size:1.1rem; }
+    /* Helper on phones */
+    @media (max-width: 576px){
+      .address-bar { font-size:.9rem; }
+      .tile{ padding:.65rem; }
+    }
+  </style>
 </head>
-<body class="bg-[#f0f0f0] flex flex-col lg:flex-row p-2 sm:p-4 gap-4 h-screen overflow-hidden">
+<body>
+<div class="container py-3">
+  <div class="d-flex align-items-center mb-3">
+    <i class="bi bi-windows fs-3 text-primary me-2"></i>
+    <h1 class="h4 m-0">File Explorer – Mô phỏng chia sẻ thư mục (Windows 10)</h1>
+  </div>
 
-    <!-- Cột Hướng Dẫn -->
-    <div class="lg:w-1/3 bg-white rounded-lg shadow-md p-4 flex flex-col h-1/2 lg:h-full overflow-y-auto">
-        <h1 class="text-xl font-bold text-[#003366] mb-4">Hướng Dẫn Thực Hành</h1>
-        <div id="task-list" class="space-y-3 text-sm">
-            <div id="task-2" class="p-3 bg-gray-50 rounded-md border border-gray-200">
-                <h2 class="font-semibold text-lg mb-2">Nhiệm vụ 2: Chia sẻ thư mục</h2>
-                <div id="t2s1" class="task-step" data-task="t2s1">1. Mở thuộc tính của thư mục <strong>SÁCH LỚP 12</strong> trên <strong>MAY_1</strong>.</div>
-                <div id="t2s2" class="task-step" data-task="t2s2">2. Trong thẻ <strong>Sharing</strong>, nhấp vào nút <strong>Share...</strong></div>
-                <div id="t2s3" class="task-step" data-task="t2s3">3. Chọn <strong>Everyone</strong>, thêm vào danh sách và nhấn <strong>Share</strong>.</div>
-                <div id="t2s4" class="task-step" data-task="t2s4">4. Từ <strong>MAY_2</strong>, truy cập vào <strong>MAY_1</strong> qua <strong>Network</strong> để xem thư mục đã chia sẻ.</div>
+  <div class="row g-3">
+    <div class="col-12 col-xl-8">
+      <div class="explorer">
+        <!-- Header -->
+        <div class="explorer-header">
+          <div class="ribbon d-flex flex-wrap gap-2 align-items-center mb-2">
+            <button class="btn btn-sm btn-outline-secondary" id="btnBack"><i class="bi bi-arrow-left"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnForward"><i class="bi bi-arrow-right"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnUp"><i class="bi bi-arrow-up"></i></button>
+            <div class="vr mx-1"></div>
+            <button class="btn btn-sm btn-outline-primary" id="btnProperties"><i class="bi bi-sliders"></i> Properties</button>
+            <button class="btn btn-sm btn-outline-primary" id="btnShare"><i class="bi bi-share"></i> Share…</button>
+            <button class="btn btn-sm btn-outline-primary" id="btnAdvShare"><i class="bi bi-gear"></i> Advanced Sharing…</button>
+            <div class="vr mx-1 d-none d-sm-block"></div>
+            <div class="ms-auto d-none d-md-flex align-items-center gap-2">
+              <i class="bi bi-question-circle"></i><span class="text-muted small">Nhấp đúp (PC) / chạm (Mobile) để mở</span>
             </div>
-            <div id="task-3" class="p-3 bg-gray-50 rounded-md border border-gray-200">
-                <h2 class="font-semibold text-lg mb-2">Nhiệm vụ 3: Hủy bỏ chia sẻ</h2>
-                <div id="t3s1" class="task-step" data-task="t3s1">1. Mở thuộc tính thư mục <strong>SÁCH LỚP 12</strong>, vào thẻ <strong>Sharing</strong> và chọn <strong>Advanced Sharing...</strong></div>
-                <div id="t3s2" class="task-step" data-task="t3s2">2. Bỏ chọn "Share this folder" và nhấn <strong>OK</strong>.</div>
-            </div>
+          </div>
+          <div class="address-bar" id="addressBar" role="navigation" aria-label="Address">
+            <span class="crumb"><i class="bi bi-pc-display"></i> <strong>This PC</strong></span>
+            <i class="bi bi-chevron-right"></i>
+            <span class="crumb" id="crumbFolder">Documents</span>
+          </div>
         </div>
-        <button id="reset-button" class="mt-auto w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 win-button transition-colors">Làm lại từ đầu</button>
+
+        <!-- Mobile toolbar -->
+        <div class="mobile-toolbar d-flex gap-2 p-2 d-sm-none">
+          <button class="btn btn-outline-secondary btn-sm flex-fill" id="mbCtx"><i class="bi bi-three-dots-vertical"></i> Menu</button>
+          <button class="btn btn-outline-primary btn-sm flex-fill" id="mbProperties"><i class="bi bi-sliders"></i> Properties</button>
+          <button class="btn btn-outline-primary btn-sm flex-fill" id="mbShare"><i class="bi bi-share"></i> Share</button>
+        </div>
+
+        <div class="row g-0">
+          <!-- Sidebar -->
+          <div class="col-12 col-md-4 col-lg-3 sidebar">
+            <div class="p-2">
+              <div class="nav-item-fx active" data-nav="thispc">
+                <i class="bi bi-pc-display"></i> <span>This PC</span>
+              </div>
+              <div class="nav-item-fx" data-nav="network">
+                <i class="bi bi-diagram-3"></i> <span>Network</span>
+              </div>
+              <div class="nav-item-fx" data-nav="quick">
+                <i class="bi bi-star"></i> <span>Quick Access</span>
+              </div>
+            </div>
+            <hr class="my-2">
+            <div class="px-2 pb-3">
+              <div class="small text-muted">Thiết bị trong mạng</div>
+              <div class="nav-item-fx" data-computer="MAY_1">
+                <i class="bi bi-pc-display"></i> <span>MAY_1</span>
+              </div>
+              <div class="nav-item-fx" data-computer="MAY_2">
+                <i class="bi bi-pc-display"></i> <span>MAY_2</span>
+              </div>
+            </div>
+          </div>
+          <!-- Content -->
+          <div class="col-12 col-md-8 col-lg-9 content">
+            <div class="p-3" id="contentArea">
+              <!-- dynamic -->
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Cửa Sổ File Explorer Giả Lập -->
-    <div class="lg:w-2/3 bg-[#eff6fc] rounded-lg shadow-lg flex flex-col h-1/2 lg:h-full border border-gray-300">
-        <!-- Thanh tiêu đề -->
-        <div class="bg-gray-100 border-b border-gray-300 p-1 flex items-center gap-2 rounded-t-lg">
-            <div class="flex gap-1">
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
-            <p class="text-sm font-semibold ml-2">File Explorer</p>
+    <!-- Steps & Feedback -->
+    <div class="col-12 col-xl-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <strong>Nhiệm vụ & Tiêu chí hoàn thành</strong>
         </div>
-
-        <!-- Thanh địa chỉ -->
-        <div class="bg-white p-1 border-b border-gray-300 flex items-center">
-            <i class="fas fa-arrow-left text-gray-400 p-1"></i>
-            <i class="fas fa-arrow-right text-gray-600 p-1 mx-1"></i>
-            <div class="flex-grow bg-gray-100 border border-gray-300 rounded p-1 text-sm flex items-center">
-                <i class="fa-solid fa-network-wired text-blue-700 mr-2"></i>
-                <span id="address-bar">Network</span>
+        <div class="card-body">
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span><span class="badge text-bg-primary badge-step">Nhiệm vụ 2</span> Chia sẻ thư mục <strong>SÁCH LỚP 12</strong> trên <strong>MAY_1</strong></span>
+              <span id="task2Status" class="badge text-bg-secondary">Chưa</span>
             </div>
+            <ol class="mt-2 small" id="task2Checklist">
+              <li data-k="openedProps">Mở <em>Properties</em> của thư mục</li>
+              <li data-k="openedSharingTab">Chuyển sang thẻ <em>Sharing</em></li>
+              <li data-k="addedEveryone">Thêm <code>Everyone</code> vào danh sách chia sẻ</li>
+              <li data-k="setPermission">Chọn quyền <em>Read</em> hoặc <em>Read/Write</em></li>
+              <li data-k="confirmedShare">Nhấn <em>Share</em> để xác nhận</li>
+            </ol>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span><span class="badge text-bg-success badge-step">Bước kế tiếp</span> Truy cập từ máy khác</span>
+              <span id="taskViewStatus" class="badge text-bg-secondary">Chưa</span>
+            </div>
+            <p class="small mb-1">Mở <strong>Network → MAY_1</strong> và nhìn thấy thư mục đã chia sẻ.</p>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span><span class="badge text-bg-danger badge-step">Nhiệm vụ 3</span> Hủy bỏ chia sẻ</span>
+              <span id="task3Status" class="badge text-bg-secondary">Chưa</span>
+            </div>
+            <ol class="mt-2 small" id="task3Checklist">
+              <li data-k="openAdv">Mở <em>Advanced Sharing…</em></li>
+              <li data-k="uncheck">Bỏ dấu ✓ ở <em>Share this folder</em></li>
+              <li data-k="applyOk">Nhấn <em>OK/Apply</em> để xác nhận</li>
+            </ol>
+          </div>
+          <div class="alert alert-info small mb-0">
+            <i class="bi bi-phone"></i> <strong>Mẹo trên di động:</strong> chạm vào thư mục để mở. Nhấn nút <span class="badge text-bg-secondary"><i class="bi bi-three-dots-vertical"></i></span> để mở menu (thay cho chuột phải). Giữ lâu (long-press) cũng được hỗ trợ.
+          </div>
         </div>
-
-        <!-- Nội dung chính -->
-        <div class="flex flex-1 overflow-hidden">
-            <!-- Khung điều hướng bên trái -->
-            <div class="w-1/4 bg-gray-50 p-2 border-r border-gray-200 overflow-y-auto">
-                <div id="nav-network" class="nav-item p-2 rounded cursor-pointer bg-blue-100 border border-blue-300">
-                    <i class="fa-solid fa-network-wired fa-fw mr-2 text-blue-700"></i><span class="text-sm font-medium">Network</span>
-                </div>
-            </div>
-
-            <!-- Khung hiển thị tệp/thư mục -->
-            <div id="main-content" class="w-3/4 p-4 flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
-                <!-- Nội dung sẽ được tạo bởi JavaScript -->
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Menu chuột phải (Context Menu) -->
-    <div id="context-menu" class="hidden absolute bg-white border border-gray-300 rounded shadow-lg p-1 text-sm z-50">
-        <div id="context-properties" class="px-3 py-1 hover:bg-blue-500 hover:text-white rounded cursor-pointer">Properties</div>
-    </div>
+<!-- Context menu -->
+<div class="ctx-menu shadow" id="ctxMenu" role="menu" aria-hidden="true">
+  <div class="ctx-item" data-action="open"><i class="bi bi-folder2-open"></i> Open</div>
+  <div class="ctx-item" data-action="properties"><i class="bi bi-sliders"></i> Properties</div>
+  <div class="ctx-item" data-action="share"><i class="bi bi-share"></i> Share…</div>
+  <div class="ctx-item" data-action="advshare"><i class="bi bi-gear"></i> Advanced Sharing…</div>
+</div>
 
-    <!-- Cửa sổ Properties -->
-    <div id="properties-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-96 bg-gray-100 border border-gray-400 shadow-2xl rounded-lg z-40 flex flex-col">
-        <div class="bg-white px-3 py-1 font-bold text-sm border-b border-gray-300 flex justify-between items-center">
-            <span id="properties-title">Properties</span>
-            <button id="close-properties" class="font-bold text-gray-600 hover:text-red-500">&times;</button>
-        </div>
-        <div class="flex border-b border-gray-300 text-sm">
-            <button class="tab-button px-3 py-1 border-b-2 border-blue-500 bg-white" data-tab="general">General</button>
-            <button class="tab-button px-3 py-1" data-tab="sharing">Sharing</button>
-            <button class="tab-button px-3 py-1" data-tab="security">Security</button>
-        </div>
-        <div class="p-4 flex-grow text-sm space-y-4">
-            <!-- Tab General -->
-            <div class="tab-content" id="tab-general">
-                <p><strong>Size:</strong> 1.25 MB</p>
-                <p><strong>Contains:</strong> 15 Files, 2 Folders</p>
+<!-- Properties Modal -->
+<div class="modal fade" id="propsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-folder"></i> SÁCH LỚP 12 – Properties</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs" id="propsTabs" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGeneral" type="button" role="tab">General</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSharing" type="button" role="tab">Sharing</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSecurity" type="button" role="tab">Security</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPrev" type="button" role="tab">Previous Versions</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCustomize" type="button" role="tab">Customize</button></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="tabGeneral" role="tabpanel">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <i class="bi bi-folder-fill" style="font-size:3rem;color:#fbbc05"></i>
+              </div>
+              <div class="col">
+                <div><strong>Name:</strong> SÁCH LỚP 12</div>
+                <div><strong>Type:</strong> File folder</div>
+                <div><strong>Location:</strong> C:\Users\Public\Documents</div>
+                <div><strong>Size:</strong> 128 MB</div>
+                <div><strong>Contains:</strong> 12 Files, 3 Folders</div>
+                <div><strong>Created:</strong> 01/09/2025 08:15 AM</div>
+              </div>
             </div>
-            <!-- Tab Sharing -->
-            <div class="tab-content hidden" id="tab-sharing">
-                <h3 class="font-semibold">Network File and Folder Sharing</h3>
-                <p class="text-xs text-gray-600 mb-2">Share folders with other people on the network.</p>
-                <button id="share-button" class="bg-gray-200 border border-gray-400 px-8 py-1 rounded text-sm hover:bg-gray-300 win-button">Share...</button>
-                <hr class="my-3">
-                <h3 class="font-semibold">Advanced Sharing</h3>
-                <p class="text-xs text-gray-600 mb-2">Set custom permissions, create multiple shares.</p>
-                <button id="advanced-sharing-button" class="bg-gray-200 border border-gray-400 px-8 py-1 rounded text-sm hover:bg-gray-300 win-button">Advanced Sharing...</button>
+            <hr>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkReadOnly">
+              <label class="form-check-label" for="chkReadOnly">Read-only</label>
             </div>
-             <!-- Tab Security -->
-            <div class="tab-content hidden" id="tab-security">
-                <p>Object name: SÁCH LỚP 12</p>
-                <p>To change permissions, click Edit.</p>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkHidden">
+              <label class="form-check-label" for="chkHidden">Hidden</label>
             </div>
+            <button class="btn btn-outline-secondary btn-sm mt-2" disabled>Advanced…</button>
+          </div>
+          <div class="tab-pane fade" id="tabSharing" role="tabpanel">
+            <div class="mb-2"><strong>Network File and Folder Sharing</strong></div>
+            <div id="shareStatus" class="alert alert-secondary py-2 small mb-2">Not shared</div>
+            <div class="d-flex gap-2 mb-3">
+              <button class="btn btn-primary btn-sm" id="openShareDialog"><i class="bi bi-share"></i> Share…</button>
+              <button class="btn btn-outline-primary btn-sm" id="openAdvDialog"><i class="bi bi-gear"></i> Advanced Sharing…</button>
+            </div>
+            <div class="small text-muted">Password Protection: <em>Off in this simulation</em></div>
+          </div>
+          <div class="tab-pane fade" id="tabSecurity" role="tabpanel">
+            <div class="text-muted">Security permissions are simplified in this simulation.</div>
+          </div>
+          <div class="tab-pane fade" id="tabPrev" role="tabpanel">
+            <div class="text-muted">No previous versions available.</div>
+          </div>
+          <div class="tab-pane fade" id="tabCustomize" role="tabpanel">
+            <div class="text-muted">Customize options are not simulated.</div>
+          </div>
         </div>
-        <div class="bg-gray-200 p-2 border-t border-gray-300 flex justify-end gap-2">
-            <button id="ok-properties" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">OK</button>
-            <button id="cancel-properties" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="text-muted small me-auto">Mẹo: Chuyển qua thẻ <em>Sharing</em> để thiết lập chia sẻ.</span>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
     </div>
-    
-    <!-- Cửa sổ Share -->
-    <div id="share-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-[450px] bg-white border border-gray-400 shadow-2xl rounded-lg z-50 flex flex-col">
-        <div class="px-4 py-2 font-bold text-sm border-b border-gray-300">
-            <span>Network access</span>
-        </div>
-        <div class="p-4 flex-grow text-sm space-y-2">
-            <h2 class="text-lg">Choose people to share with</h2>
-            <p class="text-xs">Type a name and click Add, or choose from the list.</p>
-            <div class="flex">
-                <select id="user-select" class="flex-grow border border-gray-400 p-1 rounded-l">
-                    <option>Everyone</option>
-                    <option>user11</option>
-                    <option>user12</option>
-                </select>
-                <button id="add-user-button" class="bg-gray-200 border border-gray-400 px-4 rounded-r text-sm win-button">Add</button>
-            </div>
-            <div id="shared-users-list" class="border border-gray-300 h-24 p-1 overflow-y-auto">
-                <!-- User list appears here -->
-            </div>
-        </div>
-        <div class="bg-gray-100 p-2 border-t border-gray-300 flex justify-end gap-2">
-            <button id="confirm-share-button" class="bg-blue-600 text-white px-6 py-1 rounded text-sm win-button">Share</button>
-            <button id="cancel-share-button" class="bg-gray-200 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
-        </div>
-    </div>
-    
-    <!-- Cửa sổ Advanced Sharing -->
-    <div id="advanced-sharing-window" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 sm:w-96 bg-gray-100 border border-gray-400 shadow-2xl rounded-lg z-50 flex flex-col">
-         <div class="bg-white px-3 py-1 font-bold text-sm border-b border-gray-300 flex justify-between items-center">
-            <span>Advanced Sharing</span>
-            <button id="close-advanced" class="font-bold text-gray-600 hover:text-red-500">&times;</button>
-        </div>
-        <div class="p-4 flex-grow text-sm space-y-4">
-             <label class="flex items-center">
-                <input type="checkbox" id="share-folder-checkbox" class="mr-2">
-                Share this folder
-            </label>
-        </div>
-        <div class="bg-gray-200 p-2 border-t border-gray-300 flex justify-end gap-2">
-            <button id="ok-advanced" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">OK</button>
-            <button id="cancel-advanced" class="bg-gray-300 border border-gray-400 px-6 py-1 rounded text-sm win-button">Cancel</button>
-        </div>
-    </div>
+  </div>
+</div>
 
-    <!-- Thông báo nhỏ -->
-    <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300">
-        Hoàn thành!
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-plus"></i> Choose people to share with</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Người dùng</label>
+            <select id="userSelect" class="form-select">
+              <option value="user11">user11</option>
+              <option value="user12">user12</option>
+              <option value="Everyone" selected>Everyone</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Quyền</label>
+            <select id="permSelect" class="form-select">
+              <option value="Read" selected>Read</option>
+              <option value="Read/Write">Read/Write</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-3 d-grid">
+            <button class="btn btn-primary" id="btnAddShare"><i class="bi bi-plus-circle"></i> Add</button>
+          </div>
+        </div>
+        <div class="share-list mt-3">
+          <table class="table table-sm align-middle">
+            <thead>
+            <tr><th>User</th><th>Permission Level</th><th class="text-end">Action</th></tr>
+            </thead>
+            <tbody id="shareListBody">
+            <!-- rows -->
+            </tbody>
+          </table>
+          <div class="small text-muted">Gợi ý: Bài này giới hạn chia sẻ cho <code>Everyone</code>.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="text-muted small me-auto" id="shareHint">Hãy thêm <code>Everyone</code>, chọn quyền rồi nhấn <strong>Share</strong>.</div>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="btnConfirmShare">Share</button>
+      </div>
     </div>
+  </div>
+</div>
 
+<!-- Advanced Sharing Modal -->
+<div class="modal fade" id="advModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-gear"></i> Advanced Sharing</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="chkShareThisFolder">
+          <label class="form-check-label" for="chkShareThisFolder">Share this folder</label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Share name</label>
+          <input class="form-control" id="shareName" value="SÁCH LỚP 12">
+        </div>
+        <div class="small text-muted">Permissions & Caching… (đơn giản hóa trong mô phỏng)</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-primary" id="btnApplyAdv">Apply</button>
+        <button class="btn btn-primary" id="btnOkAdv" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:11000">
+  <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="status" aria-live="polite" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Đã cập nhật.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const mainContent = document.getElementById('main-content');
-    const addressBar = document.getElementById('address-bar');
-    const navNetwork = document.getElementById('nav-network');
-    const contextMenu = document.getElementById('context-menu');
-    const contextProperties = document.getElementById('context-properties');
-    const propertiesWindow = document.getElementById('properties-window');
-    const shareWindow = document.getElementById('share-window');
-    const advancedSharingWindow = document.getElementById('advanced-sharing-window');
-    const toast = document.getElementById('toast');
-    const resetButton = document.getElementById('reset-button');
-    
-    // State
-    let state = {};
+/* ---------- STATE ---------- */
+const state = {
+  currentView: "thispc",     // "thispc" | "network" | "computer:MAY_1"
+  history: [],
+  future: [],
+  folderSelected: "SÁCH LỚP 12",
+  shared: false,
+  sharePermission: "Read",    // "Read" or "Read/Write"
+  shareName: "SÁCH LỚP 12",
+  checklist:{
+    openedProps:false,
+    openedSharingTab:false,
+    addedEveryone:false,
+    setPermission:false,
+    confirmedShare:false,
+    viewFromOther:false,
+    advOpen:false,
+    advUnchecked:false,
+    advApplied:false
+  }
+};
 
-    function initializeState() {
-        state = {
-            currentLocation: 'Network',
-            longPressTimer: null,
-            contextTarget: null,
-            computers: {
-                'MAY_1': {
-                    folders: { 'SÁCH LỚP 12': { isShared: false } }
-                },
-                'MAY_2': {
-                    folders: {}
-                }
-            },
-            tasks: { t2s1: false, t2s2: false, t2s3: false, t2s4: false, t3s1: false, t3s2: false }
-        };
-        render();
-        updateTaskListUI();
+/* ---------- HELPERS ---------- */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+function showToast(msg, type="primary"){
+  const t = $("#liveToast");
+  t.className = "toast align-items-center text-bg-"+type+" border-0";
+  $("#toastMsg").textContent = msg;
+  bootstrap.Toast.getOrCreateInstance(t, {delay:1500}).show();
+}
+
+function updateChecklist(){
+  // Task 2 status
+  const done2 = ["openedProps","openedSharingTab","addedEveryone","setPermission","confirmedShare"].every(k=>state.checklist[k]);
+  $("#task2Status").className = "badge "+(done2?"text-bg-success":"text-bg-secondary");
+  $("#task2Status").textContent = done2?"Xong":"Chưa";
+  // Mark items
+  $$("#task2Checklist li").forEach(li=>{
+    const k = li.getAttribute("data-k");
+    li.style.textDecoration = state.checklist[k] ? "line-through" : "none";
+  });
+  // View from other
+  $("#taskViewStatus").className = "badge "+(state.checklist.viewFromOther?"text-bg-success":"text-bg-secondary");
+  $("#taskViewStatus").textContent = state.checklist.viewFromOther?"Xong":"Chưa";
+  // Task 3
+  const done3 = ["advOpen","advUnchecked","advApplied"].every(k=>state.checklist[k]);
+  $("#task3Status").className = "badge "+(done3?"text-bg-success":"text-bg-secondary");
+  $("#task3Status").textContent = done3?"Xong":"Chưa";
+  $$("#task3Checklist li").forEach(li=>{
+    const k = li.getAttribute("data-k");
+    li.style.textDecoration = state.checklist[k] ? "line-through" : "none";
+  });
+}
+
+function setAddressBar(){
+  const bar = $("#addressBar");
+  bar.innerHTML = "";
+  const home = document.createElement("span");
+  home.className="crumb";
+  home.innerHTML = `<i class="bi bi-pc-display"></i> <strong>${state.currentView.startsWith("computer")?"Network": "This PC"}</strong>`;
+  bar.appendChild(home);
+  const sep = document.createElement("i");
+  sep.className="bi bi-chevron-right mx-1";
+  // add tail based on current
+  if(state.currentView==="thispc"){
+    const c = document.createElement("span"); c.className="crumb";
+    c.innerHTML = `Documents`;
+    bar.appendChild(sep); bar.appendChild(c);
+  }else if(state.currentView==="network"){
+    const c = document.createElement("span"); c.className="crumb";
+    c.innerHTML = `Network`;
+    bar.appendChild(sep); bar.appendChild(c);
+  }else if(state.currentView.startsWith("computer:")){
+    const name = state.currentView.split(":")[1];
+    bar.appendChild(sep.cloneNode());
+    const net = document.createElement("span"); net.className="crumb"; net.innerHTML="Network";
+    bar.appendChild(net);
+    bar.appendChild(sep.cloneNode());
+    const node = document.createElement("span"); node.className="crumb"; node.innerHTML = name;
+    bar.appendChild(node);
+  }
+}
+
+function render(){
+  setAddressBar();
+  const area = $("#contentArea");
+  area.innerHTML = "";
+  if(state.currentView==="thispc"){
+    const grid = document.createElement("div");
+    grid.className="grid";
+    grid.appendChild(makeFolderTile("SÁCH LỚP 12", {shareBadge: state.shared}));
+    grid.appendChild(makeFolderTile("Học kỳ 1", {}));
+    grid.appendChild(makeFolderTile("Học kỳ 2", {}));
+    area.appendChild(grid);
+  }else if(state.currentView==="network"){
+    const grid = document.createElement("div"); grid.className="grid";
+    grid.appendChild(makeComputerTile("MAY_1"));
+    grid.appendChild(makeComputerTile("MAY_2"));
+    area.appendChild(grid);
+  }else if(state.currentView.startsWith("computer:")){
+    const name = state.currentView.split(":")[1];
+    const h = document.createElement("h6");
+    h.innerHTML = `<i class="bi bi-pc-display"></i> ${name}`;
+    area.appendChild(h);
+    const grid = document.createElement("div"); grid.className="grid";
+    if(name==="MAY_1"){
+      if(state.shared){
+        grid.appendChild(makeFolderTile(state.shareName, {shareBadge:true, readOnly: state.sharePermission==="Read"}));
+        // viewing from other machine counts if coming via Network->MAY_1
+        state.checklist.viewFromOther = true;
+        updateChecklist();
+      }else{
+        const empty = document.createElement("div");
+        empty.className="alert alert-secondary";
+        empty.innerHTML = `Chưa có thư mục chia sẻ nào trên ${name}.`;
+        area.appendChild(empty);
+      }
+    }else{
+      const empty = document.createElement("div");
+      empty.className="alert alert-secondary";
+      empty.innerHTML = `Không có thư mục chia sẻ công khai trên ${name}.`;
+      area.appendChild(empty);
     }
+    area.appendChild(grid);
+  }
+}
 
-    // --- RENDER LOGIC ---
-    function render() {
-        mainContent.innerHTML = '';
-        addressBar.textContent = state.currentLocation;
-
-        if (state.currentLocation === 'Network') {
-            renderComputers();
-        } else if (state.currentLocation.startsWith('MAY_')) {
-            renderFolders(state.currentLocation);
-        }
+function makeFolderTile(name, opts={}){
+  const tile = document.createElement("div");
+  tile.className="tile";
+  tile.setAttribute("data-type","folder");
+  tile.setAttribute("data-name", name);
+  tile.innerHTML = `
+    <i class="bi bi-folder-fill folder-icon"></i>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">${name}</div>
+      <div class="text-muted small">${opts.readOnly? "Permission: Read" : (state.shared && name===state.shareName ? "Permission: "+state.sharePermission : "Folder")}</div>
+    </div>
+    <button class="btn btn-light btn-sm d-sm-none" aria-label="Menu" data-mobile-menu><i class="bi bi-three-dots-vertical"></i></button>
+  `;
+  if(opts.shareBadge){
+    const b = document.createElement("div");
+    b.className="overlay-share";
+    b.innerHTML = `<i class="bi bi-hdd-network network-cable"></i>`;
+    tile.appendChild(b);
+  }
+  // events
+  tile.addEventListener("dblclick", ()=> openFolder(name));
+  tile.addEventListener("click", (e)=>{
+    selectTile(tile);
+    // on mobile, single tap opens
+    if(window.matchMedia("(max-width: 576px)").matches){
+      openFolder(name);
     }
+  });
+  // context menu (right-click)
+  tile.addEventListener("contextmenu", (e)=>{
+    e.preventDefault(); selectTile(tile);
+    openCtxMenu(e.clientX, e.clientY, name);
+  });
+  // long press for mobile
+  let pressTimer;
+  tile.addEventListener("touchstart", (e)=>{
+    pressTimer = setTimeout(()=>{
+      const t = e.touches[0];
+      openCtxMenu(t.clientX, t.clientY, name);
+    }, 550);
+  }, {passive:true});
+  tile.addEventListener("touchend", ()=> clearTimeout(pressTimer));
+  // mobile inline menu button
+  tile.querySelector("[data-mobile-menu]")?.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    openCtxMenu(rect.left, rect.bottom+6, name);
+  });
+  return tile;
+}
 
-    function renderComputers() {
-        Object.keys(state.computers).forEach(name => {
-            const computerDiv = createIcon(name, 'fa-desktop', 'computer');
-            computerDiv.addEventListener('dblclick', () => navigateTo(name));
-            computerDiv.addEventListener('click', () => navigateTo(name)); // For mobile
-            mainContent.appendChild(computerDiv);
-        });
+function makeComputerTile(name){
+  const tile = document.createElement("div");
+  tile.className="tile";
+  tile.setAttribute("data-type","computer");
+  tile.innerHTML = `
+    <i class="bi bi-pc-display computer-icon"></i>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">${name}</div>
+      <div class="text-muted small">Double-click/tap to view shares</div>
+    </div>`;
+  tile.addEventListener("dblclick", ()=> openComputer(name));
+  tile.addEventListener("click", ()=>{
+    if(window.matchMedia("(max-width: 576px)").matches){
+      openComputer(name);
     }
+  });
+  return tile;
+}
 
-    function renderFolders(computerName) {
-        if(computerName === 'MAY_1') {
-            const folder = createIcon('SÁCH LỚP 12', 'fa-folder', 'folder');
-            if(state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared){
-                 folder.classList.add('shared');
-                 const overlay = document.createElement('div');
-                 overlay.className = 'shared-overlay';
-                 folder.querySelector('div').appendChild(overlay);
-            }
-            mainContent.appendChild(folder);
-        } else if (computerName === 'MAY_2') {
-             const back = createIcon('Go to Network', 'fa-arrow-left', 'navigation');
-             back.addEventListener('click', () => navigateTo('Network'));
-             mainContent.appendChild(back);
-             
-             // Check if can see shared folder from MAY_1
-             if (state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared) {
-                const networkLocation = createIcon('MAY_1', 'fa-desktop', 'computer');
-                networkLocation.addEventListener('click', () => {
-                    if (state.tasks.t2s3) {
-                       completeTask('t2s4');
-                       mainContent.innerHTML = '';
-                       const sharedFolder = createIcon('SÁCH LỚP 12', 'fa-folder', 'folder');
-                       sharedFolder.classList.add('shared');
-                       const overlay = document.createElement('div');
-                       overlay.className = 'shared-overlay';
-                       sharedFolder.querySelector('div').appendChild(overlay);
-                       mainContent.appendChild(sharedFolder);
-                       addressBar.textContent = `Network\\MAY_1`;
-                    }
-                });
-                mainContent.appendChild(networkLocation);
-             }
-        }
-    }
+function selectTile(tile){
+  $$(".tile").forEach(t=> t.classList.remove("selected"));
+  tile.classList.add("selected");
+}
 
-    function createIcon(name, iconClass, type) {
-        const iconWrapper = document.createElement('div');
-        iconWrapper.className = 'flex flex-col items-center text-center cursor-pointer p-2 rounded hover:bg-blue-100';
-        iconWrapper.dataset.name = name;
-        iconWrapper.dataset.type = type;
-        
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'relative text-5xl text-yellow-500 mb-1';
-        if(type === 'computer') iconDiv.className = 'relative text-5xl text-gray-600 mb-1';
-        if(type === 'navigation') iconDiv.className = 'relative text-5xl text-blue-600 mb-1';
-        
-        const icon = document.createElement('i');
-        icon.className = `fas ${iconClass}`;
-        iconDiv.appendChild(icon);
-        
-        const text = document.createElement('span');
-        text.className = 'text-xs break-words w-16';
-        text.textContent = name;
-        
-        iconWrapper.appendChild(iconDiv);
-        iconWrapper.appendChild(text);
+function openFolder(name){
+  // Only simulate opening if it is the special folder; others just show toast
+  if(state.currentView==="thispc" && name==="SÁCH LỚP 12"){
+    showToast("Mẹo: mở Properties để thiết lập chia sẻ.", "secondary");
+  }else{
+    showToast("Mở: "+name, "secondary");
+  }
+}
 
-        // Event listeners for context menu
-        iconWrapper.addEventListener('contextmenu', (e) => showContextMenu(e, iconWrapper));
-        iconWrapper.addEventListener('touchstart', (e) => handleTouchStart(e, iconWrapper));
-        iconWrapper.addEventListener('touchend', handleTouchEnd);
-        
-        return iconWrapper;
-    }
+function openComputer(name){
+  pushHistory();
+  state.currentView = "computer:"+name;
+  $("#crumbFolder").textContent = name;
+  render();
+}
 
-    // --- NAVIGATION ---
-    function navigateTo(location) {
-        state.currentLocation = location;
-        render();
-    }
-    
-    navNetwork.addEventListener('click', () => navigateTo('Network'));
-    
-    // --- TASK LOGIC ---
-    function completeTask(task) {
-        if (state.tasks[task]) return; // Already completed
-        state.tasks[task] = true;
-        updateTaskListUI();
-        showToast(`Hoàn thành bước: ${task.replace('t','Nhiệm vụ ').replace('s',' bước ')}`);
-    }
-
-    function updateTaskListUI() {
-        for (const task in state.tasks) {
-            const el = document.getElementById(task);
-            if (el) {
-                if(state.tasks[task]) {
-                    el.classList.add('text-green-600', 'line-through');
-                    el.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> ${el.innerText}`;
-                } else {
-                    el.classList.remove('text-green-600', 'line-through');
-                    el.innerHTML = el.innerText.replace('✓ ', '');
-                }
-            }
-        }
-    }
-
-    function showToast(message) {
-        toast.textContent = message;
-        toast.classList.remove('hidden');
-        setTimeout(() => { toast.classList.add('hidden'); }, 2000);
-    }
-
-    // --- CONTEXT MENU LOGIC (Right-click & Long-press) ---
-    function showContextMenu(e, target) {
-        e.preventDefault();
-        if (target.dataset.type !== 'folder' || target.dataset.name !== 'SÁCH LỚP 12' || state.currentLocation !== 'MAY_1') {
-            return;
-        }
-        state.contextTarget = target;
-        contextMenu.style.top = `${e.pageY}px`;
-        contextMenu.style.left = `${e.pageX}px`;
-        contextMenu.classList.remove('hidden');
-    }
-
-    function handleTouchStart(e, target) {
-        state.longPressTimer = setTimeout(() => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            showContextMenu({ pageX: touch.pageX, pageY: touch.pageY, preventDefault: () => {} }, target);
-        }, 500); // 500ms for long press
-    }
-
-    function handleTouchEnd() {
-        clearTimeout(state.longPressTimer);
-    }
-    
-    document.addEventListener('click', () => contextMenu.classList.add('hidden'));
-
-    // --- MODAL WINDOWS LOGIC ---
-    // Properties Window
-    contextProperties.addEventListener('click', () => {
-        if(state.contextTarget) {
-            propertiesWindow.classList.remove('hidden');
-            completeTask('t2s1');
-        }
-    });
-
-    const closeButtons = [
-        document.getElementById('close-properties'), 
-        document.getElementById('ok-properties'), 
-        document.getElementById('cancel-properties')
-    ];
-    closeButtons.forEach(btn => btn.addEventListener('click', () => propertiesWindow.classList.add('hidden')));
-    
-    const tabButtons = propertiesWindow.querySelectorAll('.tab-button');
-    const tabContents = propertiesWindow.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-white');
-            });
-            tabContents.forEach(content => content.classList.add('hidden'));
-            
-            button.classList.add('border-blue-500', 'bg-white');
-            document.getElementById(`tab-${button.dataset.tab}`).classList.remove('hidden');
-        });
-    });
-
-    // Share Window
-    document.getElementById('share-button').addEventListener('click', () => {
-        completeTask('t2s2');
-        shareWindow.classList.remove('hidden');
-    });
-
-    document.getElementById('cancel-share-button').addEventListener('click', () => {
-        shareWindow.classList.add('hidden');
-    });
-
-    document.getElementById('add-user-button').addEventListener('click', () => {
-        const userList = document.getElementById('shared-users-list');
-        const user = document.getElementById('user-select').value;
-        if (user === 'Everyone' && !document.getElementById('user-everyone')) {
-            userList.innerHTML += `<div id="user-everyone" class="flex justify-between items-center p-1"><span>Everyone</span><select><option>Read</option><option>Read/Write</option></select></div>`;
-        }
-    });
-    
-    document.getElementById('confirm-share-button').addEventListener('click', () => {
-        if(document.getElementById('user-everyone')) {
-            state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared = true;
-            completeTask('t2s3');
-            shareWindow.classList.add('hidden');
-            propertiesWindow.classList.add('hidden');
-            render();
-        } else {
-            alert('Bạn phải thêm "Everyone" vào danh sách trước khi chia sẻ.');
-        }
-    });
-
-    // Advanced Sharing Window
-    document.getElementById('advanced-sharing-button').addEventListener('click', () => {
-        completeTask('t3s1');
-        const checkbox = document.getElementById('share-folder-checkbox');
-        checkbox.checked = state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared;
-        advancedSharingWindow.classList.remove('hidden');
-    });
-    
-    const closeAdvancedButtons = [
-        document.getElementById('close-advanced'),
-        document.getElementById('cancel-advanced')
-    ];
-    closeAdvancedButtons.forEach(btn => btn.addEventListener('click', () => advancedSharingWindow.classList.add('hidden')));
-
-    document.getElementById('ok-advanced').addEventListener('click', () => {
-        const isChecked = document.getElementById('share-folder-checkbox').checked;
-        const wasShared = state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared;
-        
-        if (wasShared && !isChecked) {
-            completeTask('t3s2');
-            state.computers['MAY_1'].folders['SÁCH LỚP 12'].isShared = false;
-        }
-        
-        advancedSharingWindow.classList.add('hidden');
-        propertiesWindow.classList.add('hidden');
-        render();
-    });
-    
-    // Reset Button
-    resetButton.addEventListener('click', initializeState);
-
-    // Initial load
-    initializeState();
+/* ---------- CONTEXT MENU ---------- */
+const ctxMenu = $("#ctxMenu");
+let ctxTargetName = null;
+function openCtxMenu(x,y,name){
+  ctxTargetName = name;
+  ctxMenu.style.left = x+"px";
+  ctxMenu.style.top = y+"px";
+  ctxMenu.style.display = "block";
+}
+function closeCtxMenu(){ ctxMenu.style.display="none"; }
+document.addEventListener("click", (e)=>{
+  if(!ctxMenu.contains(e.target)) closeCtxMenu();
 });
+$("#ctxMenu [data-action='properties']").addEventListener("click", ()=>{
+  closeCtxMenu();
+  openPropertiesTab("General");
+});
+$("#ctxMenu [data-action='share']").addEventListener("click", ()=>{
+  closeCtxMenu();
+  openPropertiesTab("Sharing", true);
+});
+$("#ctxMenu [data-action='advshare']").addEventListener("click", ()=>{
+  closeCtxMenu();
+  openAdvancedSharing();
+});
+$("#ctxMenu [data-action='open']").addEventListener("click", ()=>{
+  closeCtxMenu();
+  openFolder(ctxTargetName);
+});
+
+/* ---------- MODALS ---------- */
+const propsModal = new bootstrap.Modal("#propsModal");
+const shareModal = new bootstrap.Modal("#shareModal");
+const advModal = new bootstrap.Modal("#advModal");
+
+function openPropertiesTab(tab="General", viaContext=false){
+  propsModal.show();
+  // mark checklist
+  state.checklist.openedProps = true;
+  if(tab==="Sharing"){ state.checklist.openedSharingTab = true; }
+  updateChecklist();
+  setTimeout(()=>{
+    if(tab==="Sharing"){
+      const btn = $$(`#propsTabs .nav-link`).find(b=> b.dataset.bsTarget==="#tabSharing");
+      btn?.click();
+    }else{
+      const btn = $$(`#propsTabs .nav-link`).find(b=> b.dataset.bsTarget==="#tabGeneral");
+      btn?.click();
+    }
+    updateShareStatusInProps();
+  }, 50);
+}
+
+function updateShareStatusInProps(){
+  const st = $("#shareStatus");
+  if(state.shared){
+    st.className="alert alert-success py-2 small mb-2";
+    st.innerHTML = `Shared as \\\\MAY_1\\${state.shareName} — Permission: <strong>${state.sharePermission}</strong>`;
+  }else{
+    st.className="alert alert-secondary py-2 small mb-2";
+    st.textContent = "Not shared";
+  }
+}
+
+/* Share dialog logic */
+const shareListBody = $("#shareListBody");
+function renderShareList(){
+  shareListBody.innerHTML = "";
+  const rows = [];
+  if(state.shared){
+    rows.push({user:"Everyone", perm: state.sharePermission});
+  }
+  rows.forEach(addShareRow);
+}
+function addShareRow(row){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${row.user}</td>
+    <td>${row.perm}</td>
+    <td class="text-end"><button class="btn btn-sm btn-outline-danger" data-remove="${row.user}"><i class="bi bi-x"></i> Remove</button></td>
+  `;
+  shareListBody.appendChild(tr);
+  tr.querySelector("[data-remove]")?.addEventListener("click", ()=>{
+    if(row.user==="Everyone"){
+      state.shared=false;
+      showToast("Đã xoá Everyone khỏi danh sách chia sẻ","secondary");
+      updateShareStatusInProps();
+      render();
+      updateChecklist(); // not changing checks here
+      renderShareList();
+    }else{
+      tr.remove();
+    }
+  });
+}
+
+$("#openShareDialog").addEventListener("click", ()=>{
+  state.checklist.openedSharingTab = true;
+  updateChecklist();
+  renderShareList();
+  $("#userSelect").value = "Everyone";
+  $("#permSelect").value = "Read";
+  shareModal.show();
+});
+$("#openAdvDialog").addEventListener("click", ()=>{
+  openAdvancedSharing();
+});
+$("#btnAddShare").addEventListener("click", ()=>{
+  const user = $("#userSelect").value;
+  const perm = $("#permSelect").value;
+  if(user!=="Everyone"){
+    showToast("Bài này chỉ chấm khi bạn thêm Everyone.","secondary");
+  }else{
+    state.checklist.addedEveryone = true;
+    state.checklist.setPermission = true; // vì đã chọn ở dropdown
+    // tạm thêm hiển thị danh sách (trước khi Share)
+    shareListBody.innerHTML = `
+      <tr><td>Everyone</td><td>${perm}</td><td class="text-end">
+        <button class="btn btn-sm btn-outline-danger" disabled><i class="bi bi-x"></i> Remove</button>
+      </td></tr>
+    `;
+  }
+  updateChecklist();
+});
+$("#btnConfirmShare").addEventListener("click", ()=>{
+  // commit share
+  const perm = $("#permSelect").value;
+  state.shared = true;
+  state.sharePermission = perm;
+  state.checklist.confirmedShare = true;
+  updateChecklist();
+  shareModal.hide();
+  updateShareStatusInProps();
+  render();
+  showToast(`Đã chia sẻ "${state.shareName}" cho Everyone (${perm}).`,"primary");
+});
+
+/* Advanced sharing */
+function openAdvancedSharing(){
+  state.checklist.advOpen = true;
+  $("#chkShareThisFolder").checked = state.shared;
+  $("#shareName").value = state.shareName;
+  advModal.show(); updateChecklist();
+}
+$("#btnApplyAdv").addEventListener("click", ()=>{
+  const willShare = $("#chkShareThisFolder").checked;
+  const newName = $("#shareName").value.trim() || "SÁCH LỚP 12";
+  state.shareName = newName;
+  if(!willShare){
+    if(state.shared){ state.checklist.advUnchecked = true; }
+    state.shared = false;
+    state.checklist.advApplied = true;
+    showToast("Đã hủy chia sẻ thư mục.","danger");
+  }else{
+    state.shared = true;
+    // giữ nguyên permission hiện tại
+    showToast("Đã áp dụng chia sẻ nâng cao.","primary");
+  }
+  updateChecklist();
+  updateShareStatusInProps();
+  render();
+});
+$("#btnOkAdv").addEventListener("click", ()=>{
+  // same as apply then close
+  $("#btnApplyAdv").click();
+});
+
+/* ---------- NAV ---------- */
+function pushHistory(){
+  state.history.push(state.currentView);
+  state.future = [];
+}
+$("#btnBack").addEventListener("click", ()=>{
+  if(state.history.length){
+    state.future.push(state.currentView);
+    state.currentView = state.history.pop();
+    render();
+  }
+});
+$("#btnForward").addEventListener("click", ()=>{
+  if(state.future.length){
+    state.history.push(state.currentView);
+    state.currentView = state.future.pop();
+    render();
+  }
+});
+$("#btnUp").addEventListener("click", ()=>{
+  if(state.currentView.startsWith("computer:")){
+    state.currentView = "network";
+    render();
+  }else{
+    // from "thispc" do nothing
+  }
+});
+$$(".sidebar [data-nav]").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    $$(".sidebar .nav-item-fx").forEach(n=> n.classList.remove("active"));
+    el.classList.add("active");
+    pushHistory();
+    state.currentView = el.getAttribute("data-nav");
+    render();
+  });
+});
+$$(".sidebar [data-computer]").forEach(el=>{
+  el.addEventListener("click", ()=>{
+    $$(".sidebar .nav-item-fx").forEach(n=> n.classList.remove("active"));
+    el.classList.add("active");
+    openComputer(el.getAttribute("data-computer"));
+  });
+});
+
+/* Ribbon buttons */
+$("#btnProperties").addEventListener("click", ()=> openPropertiesTab("General"));
+$("#btnShare").addEventListener("click", ()=> openPropertiesTab("Sharing", true));
+$("#btnAdvShare").addEventListener("click", ()=> openAdvancedSharing());
+
+/* Mobile toolbar mirror */
+$("#mbCtx").addEventListener("click", (e)=>{
+  // open context for target folder
+  const first = $(`.tile[data-type="folder"][data-name="${state.folderSelected}"]`) || $(".tile[data-type='folder']");
+  if(first){
+    const rect = e.currentTarget.getBoundingClientRect();
+    openCtxMenu(rect.left, rect.bottom+6, first.getAttribute("data-name"));
+  }
+});
+$("#mbProperties").addEventListener("click", ()=> openPropertiesTab("General"));
+$("#mbShare").addEventListener("click", ()=> openPropertiesTab("Sharing", true));
+
+/* Dismiss ctx menu on escape / resize */
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeCtxMenu(); });
+window.addEventListener("resize", closeCtxMenu);
+
+/* ---------- INIT ---------- */
+render(); updateChecklist();
 </script>
 </body>
 </html>
